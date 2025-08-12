@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Estructura AR - Versión Simplificada</title>
+    <title>Estructura AR - Funcional</title>
     
     <!-- A-Frame -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
@@ -17,7 +17,7 @@
             touch-action: none;
         }
         
-        .ui-panel {
+        .panel {
             position: fixed;
             background: rgba(0,0,0,0.9);
             color: white;
@@ -27,23 +27,24 @@
             border: 2px solid #00ff00;
         }
         
-        .info-panel {
+        .info {
             top: 10px;
             left: 10px;
-            max-width: 280px;
+            max-width: 250px;
+            font-size: 14px;
         }
         
-        .controls-panel {
-            bottom: 10px;
-            right: 10px;
+        .controls {
+            bottom: 20px;
+            right: 20px;
             text-align: center;
         }
         
-        .controls-panel button {
+        .controls button {
             display: block;
-            width: 100%;
-            margin: 10px 0;
-            padding: 15px;
+            width: 150px;
+            margin: 8px 0;
+            padding: 12px;
             background: #00aa00;
             color: white;
             border: none;
@@ -51,89 +52,28 @@
             font-size: 14px;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: background 0.3s;
+            touch-action: manipulation;
         }
         
-        .controls-panel button:hover {
+        .controls button:hover {
             background: #00dd00;
-            transform: scale(1.05);
         }
         
-        .controls-panel button:disabled {
-            background: #666;
-            cursor: not-allowed;
-            transform: none;
+        .controls button:active {
+            background: #008800;
+            transform: scale(0.95);
         }
         
-        .controls-panel button.ar-active {
+        .controls button.active {
             background: #ff6600;
         }
         
-        .status {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.95);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            z-index: 2000;
-            display: none;
+        .controls button:disabled {
+            background: #666;
+            cursor: not-allowed;
         }
         
-        .status.show {
-            display: block;
-        }
-        
-        .status button {
-            margin: 10px;
-            padding: 10px 20px;
-            background: #0066cc;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        
-        /* Overlay para capturar toques en AR */
-        .touch-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 500;
-            background: transparent;
-            display: none;
-        }
-        
-        .touch-overlay.active {
-            display: block;
-        }
-        
-        /* Feedback visual */
-        .touch-feedback {
-            position: fixed;
-            width: 100px;
-            height: 100px;
-            border: 3px solid #00ff00;
-            border-radius: 50%;
-            background: rgba(0,255,0,0.2);
-            pointer-events: none;
-            z-index: 1500;
-            display: none;
-            transform: translate(-50%, -50%);
-            animation: pulse 0.5s ease-out;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(2); }
-        }
-        
-        /* Video de cámara para AR */
         #camera-video {
             position: fixed;
             top: 0;
@@ -149,6 +89,51 @@
             display: block;
         }
         
+        .touch-area {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 500;
+            background: transparent;
+            display: none;
+        }
+        
+        .touch-area.active {
+            display: block;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.95);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            z-index: 2000;
+            display: none;
+            border: 2px solid #0088ff;
+        }
+        
+        .modal.show {
+            display: block;
+        }
+        
+        .modal button {
+            margin: 10px;
+            padding: 10px 20px;
+            background: #0088ff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
         .debug {
             position: fixed;
             top: 10px;
@@ -158,59 +143,71 @@
             padding: 10px;
             border-radius: 5px;
             font-family: monospace;
-            font-size: 12px;
-            max-width: 300px;
-            max-height: 200px;
+            font-size: 11px;
+            max-width: 250px;
+            max-height: 150px;
             overflow-y: auto;
-            z-index: 2000;
+            z-index: 1500;
             display: none;
+            border: 1px solid #00ff00;
         }
         
         .debug.show {
             display: block;
         }
+        
+        .debug-toggle {
+            position: fixed;
+            top: 10px;
+            right: 280px;
+            background: #00aa00;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 1500;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <!-- UI Panels -->
-    <div class="ui-panel info-panel">
+    <!-- Info Panel -->
+    <div class="panel info">
         <h3>🏗️ Estructura AR</h3>
-        <p><strong>Estado:</strong> <span id="status-text">Modo 3D Normal</span></p>
+        <p><strong>Estado:</strong> <span id="status">Modo 3D Normal</span></p>
         <p><strong>Nodos:</strong> 8 esferas rojas</p>
         <p><strong>Elementos:</strong> 8 líneas azules</p>
-        <div style="margin-top: 10px; font-size: 11px; color: #ccc;">
-            <strong>Controles 3D:</strong> Arrastra para rotar, pellizca para zoom
-        </div>
     </div>
     
-    <div class="ui-panel controls-panel">
-        <button id="btn-3d" onclick="cambiarA3D()">🖥️ Modo 3D</button>
-        <button id="btn-ar" onclick="cambiarAR()">📱 Modo AR</button>
-        <button id="btn-place" onclick="colocarEstructura()" disabled>🎯 Colocar</button>
-        <button id="btn-deform" onclick="toggleDeformacion()" disabled>🔧 Deformar</button>
-        <button id="btn-reset" onclick="resetear()">🔄 Reset</button>
-        <button onclick="toggleDebug()">🐛 Debug</button>
+    <!-- Controls Panel -->
+    <div class="panel controls">
+        <button id="btn-3d" class="active">🖥️ Modo 3D</button>
+        <button id="btn-ar">📱 Modo AR</button>
+        <button id="btn-place" disabled>🎯 Colocar</button>
+        <button id="btn-deform" disabled>🔧 Deformar</button>
+        <button id="btn-reset">🔄 Reset</button>
     </div>
     
-    <!-- Overlays -->
-    <div id="touch-overlay" class="touch-overlay"></div>
-    <div id="touch-feedback" class="touch-feedback"></div>
-    
-    <!-- Status Modal -->
-    <div id="status-modal" class="status">
-        <h3 id="status-title">Estado</h3>
-        <p id="status-message">Mensaje</p>
-        <div id="status-buttons"></div>
+    <!-- Debug -->
+    <button class="debug-toggle" onclick="toggleDebug()">🐛</button>
+    <div id="debug" class="debug">
+        <strong>DEBUG:</strong><br>
+        <div id="debug-log">Aplicación iniciada</div>
     </div>
+    
+    <!-- Modal -->
+    <div id="modal" class="modal">
+        <h3 id="modal-title">Estado</h3>
+        <p id="modal-message">Mensaje</p>
+        <div id="modal-buttons"></div>
+    </div>
+    
+    <!-- Touch Area -->
+    <div id="touch-area" class="touch-area"></div>
     
     <!-- Camera Video -->
     <video id="camera-video" autoplay muted playsinline></video>
-    
-    <!-- Debug Panel -->
-    <div id="debug-panel" class="debug">
-        <strong>DEBUG LOG:</strong><br>
-        <div id="debug-log"></div>
-    </div>
     
     <!-- A-Frame Scene -->
     <a-scene 
@@ -220,94 +217,79 @@
         loading-screen="enabled: false"
         vr-mode-ui="enabled: false">
         
-        <!-- Luces -->
+        <!-- Lights -->
         <a-light type="ambient" color="#666666"></a-light>
         <a-light type="directional" position="0 5 5" intensity="0.8"></a-light>
         
-        <!-- Contenedor principal de la estructura -->
-        <a-entity id="estructura-container" position="0 0 0" scale="1 1 1">
+        <!-- Structure Container -->
+        <a-entity id="structure" position="0 0 0" scale="1 1 1">
             
-            <!-- Plano base -->
-            <a-plane id="base-plane" 
+            <!-- Base Plane -->
+            <a-plane 
                 position="4 -0.5 0" 
                 rotation="-90 0 0" 
                 width="12" 
                 height="8" 
                 color="#ffffff" 
-                opacity="0.3"
-                material="side: double"></a-plane>
+                opacity="0.3"></a-plane>
             
-            <!-- Nodos (Esferas) -->
-            <a-sphere id="nodo-1" position="0 0 0" radius="0.3" color="#ff4444" 
-                      animation="property: rotation; to: 0 360 0; loop: true; dur: 20000">
+            <!-- Nodes -->
+            <a-sphere id="node1" position="0 0 0" radius="0.3" color="#ff4444">
                 <a-text value="1" position="0 0.8 0" align="center" color="#ffffff" scale="2 2 2"></a-text>
             </a-sphere>
             
-            <a-sphere id="nodo-2" position="0 3 0" radius="0.3" color="#ff4444"
-                      animation="property: rotation; to: 0 360 0; loop: true; dur: 20000">
+            <a-sphere id="node2" position="0 3 0" radius="0.3" color="#ff4444">
                 <a-text value="2" position="0 0.8 0" align="center" color="#ffffff" scale="2 2 2"></a-text>
             </a-sphere>
             
-            <a-sphere id="nodo-3" position="0 6 0" radius="0.3" color="#ff4444"
-                      animation="property: rotation; to: 0 360 0; loop: true; dur: 20000">
+            <a-sphere id="node3" position="0 6 0" radius="0.3" color="#ff4444">
                 <a-text value="3" position="0 0.8 0" align="center" color="#ffffff" scale="2 2 2"></a-text>
             </a-sphere>
             
-            <a-sphere id="nodo-4" position="4 6 0" radius="0.3" color="#ff4444"
-                      animation="property: rotation; to: 0 360 0; loop: true; dur: 20000">
+            <a-sphere id="node4" position="4 6 0" radius="0.3" color="#ff4444">
                 <a-text value="4" position="0 0.8 0" align="center" color="#ffffff" scale="2 2 2"></a-text>
             </a-sphere>
             
-            <a-sphere id="nodo-5" position="4 3 0" radius="0.3" color="#ff4444"
-                      animation="property: rotation; to: 0 360 0; loop: true; dur: 20000">
+            <a-sphere id="node5" position="4 3 0" radius="0.3" color="#ff4444">
                 <a-text value="5" position="0 0.8 0" align="center" color="#ffffff" scale="2 2 2"></a-text>
             </a-sphere>
             
-            <a-sphere id="nodo-6" position="4 0 0" radius="0.3" color="#ff4444"
-                      animation="property: rotation; to: 0 360 0; loop: true; dur: 20000">
+            <a-sphere id="node6" position="4 0 0" radius="0.3" color="#ff4444">
                 <a-text value="6" position="0 0.8 0" align="center" color="#ffffff" scale="2 2 2"></a-text>
             </a-sphere>
             
-            <a-sphere id="nodo-7" position="8 3 0" radius="0.3" color="#ff4444"
-                      animation="property: rotation; to: 0 360 0; loop: true; dur: 20000">
+            <a-sphere id="node7" position="8 3 0" radius="0.3" color="#ff4444">
                 <a-text value="7" position="0 0.8 0" align="center" color="#ffffff" scale="2 2 2"></a-text>
             </a-sphere>
             
-            <a-sphere id="nodo-8" position="8 0 0" radius="0.3" color="#ff4444"
-                      animation="property: rotation; to: 0 360 0; loop: true; dur: 20000">
+            <a-sphere id="node8" position="8 0 0" radius="0.3" color="#ff4444">
                 <a-text value="8" position="0 0.8 0" align="center" color="#ffffff" scale="2 2 2"></a-text>
             </a-sphere>
         </a-entity>
         
-        <!-- Cámara -->
-        <a-camera id="camera" 
-                  position="12 9 18" 
-                  look-at="4 3 0"
-                  wasd-controls="enabled: true"
-                  look-controls="enabled: true"></a-camera>
+        <!-- Camera -->
+        <a-camera 
+            id="camera" 
+            position="12 9 18" 
+            look-at="4 3 0"></a-camera>
     </a-scene>
 
     <script>
-        // Variables globales
-        let modoAR = false;
-        let estructuraColocada = false;
-        let estructuraDeformada = false;
+        // Global variables
+        let isAR = false;
+        let isPlaced = false;
+        let isDeformed = false;
         let cameraStream = null;
         let debugVisible = false;
-        let debugLog = [];
+        let debugLog = ['Aplicación iniciada'];
         
-        // Posiciones originales de los nodos
-        const posicionesOriginales = [
+        // Original positions
+        const originalPositions = [
             [0, 0], [0, 3], [0, 6], [4, 6], [4, 3], [4, 0], [8, 3], [8, 0]
         ];
         
-        // Conectividad (qué nodos están conectados)
-        const conectividad = [
-            [0, 1], [1, 2], [2, 3], [3, 4], [1, 4], [4, 5], [4, 6], [6, 7]
-        ];
-        
-        // Desplazamientos para deformación
-        const desplazamientos = [
+        // Deformation data
+        const deformations = [
             {x: 0, y: 0}, 
             {x: -0.000214334467084222, y: -2.92585497916779e-05}, 
             {x: -4.51228548254704e-05, y: -5.91445463001043e-05}, 
@@ -318,133 +300,130 @@
             {x: 0, y: 0}
         ];
         
-        const FACTOR_AMPLIFICACION = 8000;
+        const AMPLIFICATION = 8000;
         
-        // Sistema de debug
-        function log(mensaje, tipo = 'info') {
+        // Debug system
+        function log(message) {
             const timestamp = new Date().toLocaleTimeString();
-            const entry = `[${timestamp}] ${mensaje}`;
+            const entry = `[${timestamp}] ${message}`;
             debugLog.push(entry);
             
-            if (debugLog.length > 50) debugLog.shift();
+            if (debugLog.length > 20) debugLog.shift();
             
-            console.log(`[${tipo.toUpperCase()}] ${mensaje}`);
+            console.log(entry);
             
             if (debugVisible) {
-                actualizarDebugPanel();
-            }
-        }
-        
-        function actualizarDebugPanel() {
-            const panel = document.getElementById('debug-log');
-            if (panel) {
-                panel.innerHTML = debugLog.join('<br>');
-                panel.scrollTop = panel.scrollHeight;
+                document.getElementById('debug-log').innerHTML = debugLog.join('<br>');
             }
         }
         
         function toggleDebug() {
             debugVisible = !debugVisible;
-            const panel = document.getElementById('debug-panel');
+            const panel = document.getElementById('debug');
             if (debugVisible) {
                 panel.classList.add('show');
-                actualizarDebugPanel();
+                document.getElementById('debug-log').innerHTML = debugLog.join('<br>');
             } else {
                 panel.classList.remove('show');
             }
         }
         
-        // Actualizar estado
-        function actualizarEstado(mensaje) {
-            document.getElementById('status-text').textContent = mensaje;
-            log(mensaje);
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+            log(message);
         }
         
-        // Mostrar modal de estado
-        function mostrarModal(titulo, mensaje, botones = []) {
-            const modal = document.getElementById('status-modal');
-            const titleEl = document.getElementById('status-title');
-            const messageEl = document.getElementById('status-message');
-            const buttonsEl = document.getElementById('status-buttons');
+        function showModal(title, message, buttons = []) {
+            const modal = document.getElementById('modal');
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
             
-            titleEl.textContent = titulo;
-            messageEl.textContent = mensaje;
+            const buttonsContainer = document.getElementById('modal-buttons');
+            buttonsContainer.innerHTML = '';
             
-            buttonsEl.innerHTML = '';
-            botones.forEach(btn => {
+            buttons.forEach(btn => {
                 const button = document.createElement('button');
-                button.textContent = btn.texto;
-                button.onclick = btn.accion;
-                buttonsEl.appendChild(button);
+                button.textContent = btn.text;
+                button.onclick = btn.action;
+                buttonsContainer.appendChild(button);
             });
             
             modal.classList.add('show');
             
-            if (botones.length === 0) {
+            if (buttons.length === 0) {
                 setTimeout(() => {
                     modal.classList.remove('show');
                 }, 3000);
             }
         }
         
-        function cerrarModal() {
-            document.getElementById('status-modal').classList.remove('show');
+        function hideModal() {
+            document.getElementById('modal').classList.remove('show');
         }
         
-        // Cambiar a modo 3D
-        function cambiarA3D() {
+        // Mode switching
+        function switch3D() {
             log('Cambiando a modo 3D');
             
+            // Stop camera if active
             if (cameraStream) {
                 cameraStream.getTracks().forEach(track => track.stop());
                 cameraStream = null;
             }
             
+            // Hide camera video
             document.getElementById('camera-video').classList.remove('show');
-            document.getElementById('touch-overlay').classList.remove('active');
+            document.getElementById('touch-area').classList.remove('active');
             
+            // Remove AR structure if exists
+            const arStructure = document.getElementById('ar-structure');
+            if (arStructure) {
+                arStructure.remove();
+            }
+            
+            // Configure A-Frame scene
             const scene = document.getElementById('scene');
             scene.setAttribute('background', 'color: #f0f0f0');
             
             const camera = document.getElementById('camera');
-            camera.setAttribute('wasd-controls', 'enabled: true');
-            camera.setAttribute('look-controls', 'enabled: true');
             camera.setAttribute('position', '12 9 18');
             camera.setAttribute('look-at', '4 3 0');
+            camera.setAttribute('wasd-controls', 'enabled: true');
+            camera.setAttribute('look-controls', 'enabled: true');
             
-            const container = document.getElementById('estructura-container');
-            container.setAttribute('position', '0 0 0');
-            container.setAttribute('scale', '1 1 1');
+            // Show structure
+            const structure = document.getElementById('structure');
+            structure.setAttribute('visible', 'true');
+            structure.setAttribute('position', '0 0 0');
+            structure.setAttribute('scale', '1 1 1');
             
-            modoAR = false;
-            estructuraColocada = true;
+            // Update state
+            isAR = false;
+            isPlaced = true;
             
-            document.getElementById('btn-3d').style.background = '#ff6600';
-            document.getElementById('btn-ar').style.background = '#00aa00';
+            // Update UI
+            document.getElementById('btn-3d').classList.add('active');
+            document.getElementById('btn-ar').classList.remove('active');
             document.getElementById('btn-place').disabled = true;
             document.getElementById('btn-deform').disabled = false;
             
-            actualizarEstado('Modo 3D - Estructura visible');
-            crearLineas();
+            updateStatus('Modo 3D - Estructura visible');
+            createLines();
         }
         
-        // Cambiar a modo AR
-        async function cambiarAR() {
-            log('=== INICIANDO MODO AR ===');
+        async function switchAR() {
+            log('Iniciando modo AR');
             
-            // Verificar soporte
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                mostrarModal('Error', 'Tu dispositivo no soporta acceso a cámara', [
-                    {texto: 'OK', accion: cerrarModal}
+                showModal('Error', 'Tu dispositivo no soporta cámara', [
+                    {text: 'OK', action: hideModal}
                 ]);
                 return;
             }
             
             try {
-                // Solicitar cámara
-                mostrarModal('Solicitando Cámara', 'Permite el acceso a la cámara para usar AR');
+                showModal('Cámara', 'Solicitando permisos de cámara...');
                 
-                log('Solicitando permisos de cámara...');
                 cameraStream = await navigator.mediaDevices.getUserMedia({
                     video: { 
                         facingMode: 'environment',
@@ -455,539 +434,369 @@
                 
                 log('Permisos de cámara obtenidos');
                 
-                // Configurar video
+                // Setup camera video
                 const video = document.getElementById('camera-video');
                 video.srcObject = cameraStream;
                 video.classList.add('show');
-                log('Video de cámara configurado');
                 
-                // Configurar escena AR
+                // Configure A-Frame for AR
                 const scene = document.getElementById('scene');
                 scene.setAttribute('background', 'color: transparent');
-                log('Fondo de escena puesto transparente');
                 
-                // CONFIGURACIÓN CRÍTICA DE CÁMARA AR
                 const camera = document.getElementById('camera');
+                camera.setAttribute('position', '0 0 0');
+                camera.setAttribute('rotation', '0 0 0');
+                camera.removeAttribute('look-at');
                 camera.setAttribute('wasd-controls', 'enabled: false');
                 camera.setAttribute('look-controls', 'enabled: false');
-                camera.setAttribute('position', '0 0 0');  // Origen exacto
-                camera.setAttribute('rotation', '0 0 0');  // Sin rotación
-                camera.removeAttribute('look-at');
                 
-                // ASEGURAR QUE LA CÁMARA ESTÉ EN LA ESCENA
-                if (!camera.parentElement) {
-                    scene.appendChild(camera);
-                    log('Cámara re-agregada a la escena');
-                }
+                // Hide A-Frame structure
+                const structure = document.getElementById('structure');
+                structure.setAttribute('visible', 'false');
                 
-                log('Cámara AR configurada en origen');
+                // Setup touch area
+                const touchArea = document.getElementById('touch-area');
+                touchArea.classList.add('active');
+                touchArea.onclick = handleTouch;
+                touchArea.ontouchstart = handleTouch;
                 
-                // HACER LA ESTRUCTURA INVISIBLE INICIALMENTE PERO VERIFICAR QUE EXISTA
-                const container = document.getElementById('estructura-container');
-                if (container) {
-                    container.setAttribute('visible', 'false');
-                    log('Estructura ocultada inicialmente');
-                    
-                    // Verificar que todos los nodos existan
-                    for (let i = 1; i <= 8; i++) {
-                        const nodo = document.getElementById(`nodo-${i}`);
-                        if (nodo) {
-                            log(`Nodo ${i} encontrado`);
-                        } else {
-                            log(`ERROR: Nodo ${i} no encontrado`);
-                        }
-                    }
-                } else {
-                    log('ERROR CRÍTICO: No se encontró estructura-container');
-                }
+                // Update state
+                isAR = true;
+                isPlaced = false;
                 
-                // Configurar overlay de toque
-                const overlay = document.getElementById('touch-overlay');
-                overlay.classList.add('active');
-                
-                // CONFIGURAR EVENTOS MÁS AGRESIVAMENTE
-                overlay.onclick = function(e) {
-                    log('EVENTO: Click detectado en overlay');
-                    manejarToque(e);
-                };
-                
-                overlay.ontouchstart = function(e) {
-                    log('EVENTO: Touch detectado en overlay');
-                    manejarToque(e);
-                };
-                
-                overlay.onpointerdown = function(e) {
-                    log('EVENTO: Pointer detectado en overlay');
-                    manejarToque(e);
-                };
-                
-                // También agregar listener directo al documento para mayor compatibilidad
-                document.addEventListener('click', function(e) {
-                    if (modoAR && !estructuraColocada && overlay.classList.contains('active')) {
-                        log('EVENTO: Click alternativo detectado en documento');
-                        manejarToque(e);
-                    }
-                });
-                
-                // AGREGAR LISTENER AL VIDEO TAMBIÉN
-                video.addEventListener('click', function(e) {
-                    if (modoAR && !estructuraColocada) {
-                        log('EVENTO: Click detectado en video de cámara');
-                        manejarToque(e);
-                    }
-                });
-                
-                log('Eventos de toque configurados en múltiples elementos');
-                
-                // Configurar estado
-                modoAR = true;
-                estructuraColocada = false;
-                
-                document.getElementById('btn-ar').style.background = '#ff6600';
-                document.getElementById('btn-3d').style.background = '#00aa00';
+                // Update UI
+                document.getElementById('btn-ar').classList.add('active');
+                document.getElementById('btn-3d').classList.remove('active');
                 document.getElementById('btn-place').disabled = false;
                 document.getElementById('btn-deform').disabled = true;
                 
-                cerrarModal();
-                actualizarEstado('Modo AR - Toca CUALQUIER PARTE de la pantalla (incluso el video)');
-                
-                // VERIFICACIONES PERIÓDICAS DEL ESTADO AR
-                let contadorVerificacion = 0;
-                const verificarAR = setInterval(() => {
-                    contadorVerificacion++;
-                    log(`Verificación AR ${contadorVerificacion}: modoAR=${modoAR}, estructuraColocada=${estructuraColocada}`);
-                    log(`Overlay activo: ${overlay.classList.contains('active')}`);
-                    
-                    if (contadorVerificacion >= 3) {
-                        clearInterval(verificarAR);
-                        log('SISTEMA AR LISTO - Esperando interacción del usuario');
-                    }
-                }, 1000);
-                
-                log('=== MODO AR ACTIVADO CORRECTAMENTE ===');
+                hideModal();
+                updateStatus('Modo AR - Toca la pantalla para colocar');
                 
             } catch (error) {
-                log(`ERROR activando AR: ${error.message}`, 'error');
-                mostrarModal('Error de Cámara', `No se pudo acceder a la cámara: ${error.message}`, [
-                    {texto: 'Reintentar', accion: cambiarAR},
-                    {texto: 'Cancelar', accion: cerrarModal}
+                log(`Error: ${error.message}`);
+                showModal('Error de Cámara', `No se pudo acceder a la cámara: ${error.message}`, [
+                    {text: 'Reintentar', action: switchAR},
+                    {text: 'Cancelar', action: hideModal}
                 ]);
             }
         }
         
-        // Manejar toque en AR
-        function manejarToque(event) {
-            log('Función manejarToque llamada');
-            log(`Estado: modoAR=${modoAR}, estructuraColocada=${estructuraColocada}`);
-            
-            if (!modoAR) {
-                log('ERROR: No estamos en modo AR');
-                return;
-            }
-            
-            if (estructuraColocada) {
-                log('AVISO: Estructura ya colocada');
-                return;
-            }
+        function handleTouch(event) {
+            if (!isAR || isPlaced) return;
             
             event.preventDefault();
+            log('Toque detectado - colocando estructura');
             
-            let x = event.clientX || (event.touches && event.touches[0].clientX) || window.innerWidth / 2;
-            let y = event.clientY || (event.touches && event.touches[0].clientY) || window.innerHeight / 2;
-            
-            // Mostrar feedback
-            const feedback = document.getElementById('touch-feedback');
-            feedback.style.left = x + 'px';
-            feedback.style.top = y + 'px';
-            feedback.style.display = 'block';
-            
-            setTimeout(() => {
-                feedback.style.display = 'none';
-            }, 500);
-            
-            log(`Toque detectado en (${x}, ${y}) - Procediendo a colocar estructura`);
-            
-            // Colocar estructura inmediatamente
-            colocarEstructura();
+            placeStructure();
         }
         
-        // Colocar estructura usando HTML/CSS directo sobre el video
-        function colocarEstructura() {
-            log('=== INICIANDO COLOCACIÓN CON RENDERIZADO HTML/CSS ===');
+        function placeStructure() {
+            log('Colocando estructura');
             
-            if (modoAR) {
-                log('Modo AR: Creando estructura con elementos HTML/CSS');
-                
-                // Crear contenedor HTML para la estructura AR
-                let arContainer = document.getElementById('ar-html-structure');
-                if (arContainer) {
-                    arContainer.remove();
-                }
-                
-                arContainer = document.createElement('div');
-                arContainer.id = 'ar-html-structure';
-                arContainer.style.cssText = `
-                    position: fixed;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    z-index: 1000;
-                    pointer-events: none;
-                    width: 300px;
-                    height: 200px;
-                `;
-                
-                document.body.appendChild(arContainer);
-                log('Contenedor HTML creado');
-                
-                // Crear nodos como elementos HTML
-                const posicionesHTML = [
-                    {x: 0, y: 0, id: 1}, {x: 0, y: 60, id: 2}, {x: 0, y: 120, id: 3},
-                    {x: 100, y: 120, id: 4}, {x: 100, y: 60, id: 5}, {x: 100, y: 0, id: 6},
-                    {x: 200, y: 60, id: 7}, {x: 200, y: 0, id: 8}
-                ];
-                
-                posicionesHTML.forEach(pos => {
-                    const nodo = document.createElement('div');
-                    nodo.id = `nodo-html-${pos.id}`;
-                    nodo.style.cssText = `
-                        position: absolute;
-                        left: ${pos.x}px;
-                        top: ${pos.y}px;
-                        width: 30px;
-                        height: 30px;
-                        background: radial-gradient(circle, #ff0000, #aa0000);
-                        border-radius: 50%;
-                        border: 3px solid #ffffff;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        color: white;
-                        font-weight: bold;
-                        font-size: 14px;
-                        box-shadow: 0 0 20px rgba(255,0,0,0.8);
-                        animation: pulse 2s infinite;
-                        transform: translate(-50%, -50%);
-                    `;
-                    nodo.textContent = pos.id;
-                    arContainer.appendChild(nodo);
-                    log(`Nodo HTML ${pos.id} creado en ${pos.x}, ${pos.y}`);
-                });
-                
-                // Crear líneas como elementos HTML
-                const conexionesHTML = [
-                    {from: 1, to: 2}, {from: 2, to: 3}, {from: 3, to: 4}, 
-                    {from: 4, to: 5}, {from: 2, to: 5}, {from: 5, to: 6}, 
-                    {from: 5, to: 7}, {from: 7, to: 8}
-                ];
-                
-                conexionesHTML.forEach((conn, index) => {
-                    const nodo1 = posicionesHTML.find(p => p.id === conn.from);
-                    const nodo2 = posicionesHTML.find(p => p.id === conn.to);
-                    
-                    if (nodo1 && nodo2) {
-                        const dx = nodo2.x - nodo1.x;
-                        const dy = nodo2.y - nodo1.y;
-                        const length = Math.sqrt(dx*dx + dy*dy);
-                        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-                        
-                        const linea = document.createElement('div');
-                        linea.style.cssText = `
-                            position: absolute;
-                            left: ${nodo1.x}px;
-                            top: ${nodo1.y}px;
-                            width: ${length}px;
-                            height: 4px;
-                            background: linear-gradient(90deg, #0088ff, #0066cc);
-                            transform-origin: 0 50%;
-                            transform: rotate(${angle}deg);
-                            box-shadow: 0 0 10px rgba(0,136,255,0.6);
-                            opacity: 0.9;
-                        `;
-                        arContainer.appendChild(linea);
-                        log(`Línea HTML ${index + 1} creada`);
-                    }
-                });
-                
-                // Agregar título
-                const titulo = document.createElement('div');
-                titulo.style.cssText = `
-                    position: absolute;
-                    top: -40px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    color: #ffffff;
-                    font-size: 16px;
-                    font-weight: bold;
-                    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-                    text-align: center;
-                    background: rgba(0,0,0,0.7);
-                    padding: 5px 10px;
-                    border-radius: 5px;
-                `;
-                titulo.textContent = 'Estructura de Nodos AR';
-                arContainer.appendChild(titulo);
-                
-                // Agregar estilos de animación
-                const style = document.createElement('style');
-                style.textContent = `
-                    @keyframes pulse {
-                        0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-                        50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
-                    }
-                `;
-                document.head.appendChild(style);
-                
-                log('Estructura HTML/CSS creada con animaciones');
-                
-                // También intentar crear elementos A-Frame en una posición fija de pantalla
-                const scene = document.getElementById('scene');
-                const overlay3D = document.createElement('a-entity');
-                overlay3D.id = 'overlay-3d';
-                overlay3D.setAttribute('position', '0 0 -0.1'); // Muy cerca de la cámara
-                
-                // Crear una caja simple que DEBE ser visible
-                const testCube = document.createElement('a-box');
-                testCube.setAttribute('position', '0 0 0');
-                testCube.setAttribute('scale', '0.05 0.05 0.05');
-                testCube.setAttribute('color', '#00ff00');
-                testCube.setAttribute('material', 'emissive: #00ff00; transparent: false; opacity: 1');
-                testCube.setAttribute('geometry', 'primitive: box');
-                testCube.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 2000');
-                
-                overlay3D.appendChild(testCube);
-                scene.appendChild(overlay3D);
-                
-                log('Cubo de prueba A-Frame agregado a z: -0.1');
-                
+            if (isAR) {
+                createARStructure();
             } else {
-                // Modo 3D normal - usar A-Frame
-                log('Modo 3D: Usando A-Frame normal');
-                const container = document.getElementById('estructura-container');
-                container.setAttribute('position', '0 0 0');
-                container.setAttribute('scale', '1 1 1');
-                container.setAttribute('visible', 'true');
+                const structure = document.getElementById('structure');
+                structure.setAttribute('visible', 'true');
             }
             
-            // Marcar como colocada
-            estructuraColocada = true;
+            isPlaced = true;
             
-            // Actualizar UI
             document.getElementById('btn-place').disabled = true;
             document.getElementById('btn-deform').disabled = false;
-            document.getElementById('touch-overlay').classList.remove('active');
+            document.getElementById('touch-area').classList.remove('active');
             
-            if (modoAR) {
-                actualizarEstado('Estructura AR creada con HTML/CSS - ¿La ves ahora?');
-            } else {
-                actualizarEstado('Estructura 3D colocada');
-                // Crear líneas A-Frame para modo 3D
-                setTimeout(() => crearLineas(), 100);
-            }
-            
-            log('=== COLOCACIÓN COMPLETADA ===');
-            log('¿VES AHORA LA ESTRUCTURA? (nodos rojos numerados con líneas azules)');
-            log('Si la ves, dime dónde está en la pantalla');
-            log('Si aún no la ves, el problema puede ser el video de la cámara superponiéndose');
+            updateStatus('Estructura colocada - Usa deformar para ver cambios');
         }
         
-        // Crear líneas entre nodos
-        function crearLineas() {
-            log('Creando líneas de conexión');
+        function createARStructure() {
+            log('Creando estructura AR con HTML');
             
-            // Limpiar líneas existentes
-            for (let i = 1; i <= 8; i++) {
-                const linea = document.getElementById(`linea-${i}`);
-                if (linea) linea.remove();
+            // Remove existing AR structure
+            const existing = document.getElementById('ar-structure');
+            if (existing) existing.remove();
+            
+            // Create container
+            const container = document.createElement('div');
+            container.id = 'ar-structure';
+            container.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 800;
+                pointer-events: none;
+                width: 400px;
+                height: 300px;
+            `;
+            
+            // Node positions for HTML layout
+            const nodePositions = [
+                {x: 0, y: 0}, {x: 0, y: 100}, {x: 0, y: 200},
+                {x: 133, y: 200}, {x: 133, y: 100}, {x: 133, y: 0},
+                {x: 266, y: 100}, {x: 266, y: 0}
+            ];
+            
+            // Create nodes
+            nodePositions.forEach((pos, i) => {
+                const node = document.createElement('div');
+                node.id = `ar-node-${i + 1}`;
+                node.style.cssText = `
+                    position: absolute;
+                    left: ${pos.x}px;
+                    top: ${pos.y}px;
+                    width: 40px;
+                    height: 40px;
+                    background: radial-gradient(circle, #ff4444, #aa0000);
+                    border-radius: 50%;
+                    border: 3px solid #ffffff;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    font-weight: bold;
+                    font-size: 16px;
+                    box-shadow: 0 0 15px rgba(255,68,68,0.8);
+                    transform: translate(-50%, -50%);
+                    animation: glow 2s infinite alternate;
+                `;
+                node.textContent = i + 1;
+                container.appendChild(node);
+            });
+            
+            // Create connections
+            const connections = [
+                [0, 1], [1, 2], [2, 3], [3, 4], [1, 4], [4, 5], [4, 6], [6, 7]
+            ];
+            
+            connections.forEach(([from, to]) => {
+                const fromPos = nodePositions[from];
+                const toPos = nodePositions[to];
+                
+                const dx = toPos.x - fromPos.x;
+                const dy = toPos.y - fromPos.y;
+                const length = Math.sqrt(dx*dx + dy*dy);
+                const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                
+                const line = document.createElement('div');
+                line.style.cssText = `
+                    position: absolute;
+                    left: ${fromPos.x}px;
+                    top: ${fromPos.y}px;
+                    width: ${length}px;
+                    height: 4px;
+                    background: linear-gradient(90deg, #0088ff, #0066cc);
+                    transform-origin: 0 50%;
+                    transform: rotate(${angle}deg);
+                    box-shadow: 0 0 8px rgba(0,136,255,0.6);
+                    opacity: 0.9;
+                `;
+                container.appendChild(line);
+            });
+            
+            // Add glow animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes glow {
+                    0% { box-shadow: 0 0 15px rgba(255,68,68,0.8); }
+                    100% { box-shadow: 0 0 25px rgba(255,68,68,1); }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            document.body.appendChild(container);
+            
+            log('Estructura AR creada');
+        }
+        
+        function toggleDeformation() {
+            if (!isPlaced) return;
+            
+            isDeformed = !isDeformed;
+            log(`${isDeformed ? 'Aplicando' : 'Removiendo'} deformación`);
+            
+            if (isAR) {
+                // Deform AR structure
+                const nodePositions = [
+                    {x: 0, y: 0}, {x: 0, y: 100}, {x: 0, y: 200},
+                    {x: 133, y: 200}, {x: 133, y: 100}, {x: 133, y: 0},
+                    {x: 266, y: 100}, {x: 266, y: 0}
+                ];
+                
+                for (let i = 0; i < 8; i++) {
+                    const node = document.getElementById(`ar-node-${i + 1}`);
+                    if (node) {
+                        let x, y;
+                        
+                        if (isDeformed) {
+                            const defX = deformations[i].x * AMPLIFICATION * 0.5;
+                            const defY = deformations[i].y * AMPLIFICATION * 0.5;
+                            x = nodePositions[i].x + defX;
+                            y = nodePositions[i].y + defY;
+                            node.style.background = 'radial-gradient(circle, #ff8844, #cc4400)';
+                        } else {
+                            x = nodePositions[i].x;
+                            y = nodePositions[i].y;
+                            node.style.background = 'radial-gradient(circle, #ff4444, #aa0000)';
+                        }
+                        
+                        node.style.left = x + 'px';
+                        node.style.top = y + 'px';
+                    }
+                }
+            } else {
+                // Deform A-Frame structure
+                for (let i = 0; i < 8; i++) {
+                    const node = document.getElementById(`node${i + 1}`);
+                    if (node) {
+                        let x, y;
+                        
+                        if (isDeformed) {
+                            const defX = deformations[i].x * AMPLIFICATION;
+                            const defY = deformations[i].y * AMPLIFICATION;
+                            x = originalPositions[i][0] + defX;
+                            y = originalPositions[i][1] + defY;
+                            node.setAttribute('color', '#ff8844');
+                        } else {
+                            x = originalPositions[i][0];
+                            y = originalPositions[i][1];
+                            node.setAttribute('color', '#ff4444');
+                        }
+                        
+                        node.setAttribute('position', `${x} ${y} 0`);
+                    }
+                }
+                
+                setTimeout(() => createLines(), 300);
             }
             
-            const container = document.getElementById('estructura-container');
+            const btn = document.getElementById('btn-deform');
+            btn.textContent = isDeformed ? '↩️ Original' : '🔧 Deformar';
+            btn.style.background = isDeformed ? '#ff6600' : '#00aa00';
             
-            conectividad.forEach((conexion, index) => {
-                const [nodo1Idx, nodo2Idx] = conexion;
-                const nodo1 = document.getElementById(`nodo-${nodo1Idx + 1}`);
-                const nodo2 = document.getElementById(`nodo-${nodo2Idx + 1}`);
+            updateStatus(isDeformed ? 'Mostrando deformaciones' : 'Estructura original');
+        }
+        
+        function createLines() {
+            // Remove existing lines
+            for (let i = 1; i <= 8; i++) {
+                const line = document.getElementById(`line${i}`);
+                if (line) line.remove();
+            }
+            
+            const connections = [
+                [0, 1], [1, 2], [2, 3], [3, 4], [1, 4], [4, 5], [4, 6], [6, 7]
+            ];
+            
+            const structure = document.getElementById('structure');
+            
+            connections.forEach((conn, index) => {
+                const node1 = document.getElementById(`node${conn[0] + 1}`);
+                const node2 = document.getElementById(`node${conn[1] + 1}`);
                 
-                if (nodo1 && nodo2) {
-                    const pos1 = nodo1.getAttribute('position');
-                    const pos2 = nodo2.getAttribute('position');
+                if (node1 && node2) {
+                    const pos1 = node1.getAttribute('position');
+                    const pos2 = node2.getAttribute('position');
                     
-                    // Calcular posición y rotación de la línea
                     const dx = pos2.x - pos1.x;
                     const dy = pos2.y - pos1.y;
                     const dz = pos2.z - pos1.z;
-                    const distancia = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                    const distance = Math.sqrt(dx*dx + dy*dy + dz*dz);
                     
-                    const centroX = (pos1.x + pos2.x) / 2;
-                    const centroY = (pos1.y + pos2.y) / 2;
-                    const centroZ = (pos1.z + pos2.z) / 2;
+                    const centerX = (pos1.x + pos2.x) / 2;
+                    const centerY = (pos1.y + pos2.y) / 2;
+                    const centerZ = (pos1.z + pos2.z) / 2;
                     
                     const rotY = Math.atan2(dx, dz) * (180 / Math.PI);
                     const rotZ = -Math.atan2(dy, Math.sqrt(dx*dx + dz*dz)) * (180 / Math.PI);
                     
-                    // Crear línea como cilindro
-                    const linea = document.createElement('a-cylinder');
-                    linea.id = `linea-${index + 1}`;
-                    linea.setAttribute('position', `${centroX} ${centroY} ${centroZ}`);
-                    linea.setAttribute('rotation', `0 ${rotY} ${rotZ}`);
-                    linea.setAttribute('radius', '0.05');
-                    linea.setAttribute('height', distancia);
-                    linea.setAttribute('color', estructuraDeformada ? '#ff8844' : '#4488ff');
-                    linea.setAttribute('opacity', '0.8');
+                    const line = document.createElement('a-cylinder');
+                    line.id = `line${index + 1}`;
+                    line.setAttribute('position', `${centerX} ${centerY} ${centerZ}`);
+                    line.setAttribute('rotation', `0 ${rotY} ${rotZ}`);
+                    line.setAttribute('radius', '0.05');
+                    line.setAttribute('height', distance);
+                    line.setAttribute('color', isDeformed ? '#ff8844' : '#4488ff');
+                    line.setAttribute('opacity', '0.8');
                     
-                    container.appendChild(linea);
+                    structure.appendChild(line);
                 }
             });
         }
         
-        // Toggle deformación
-        function toggleDeformacion() {
-            if (!estructuraColocada) return;
+        function reset() {
+            log('Reseteando aplicación');
             
-            estructuraDeformada = !estructuraDeformada;
-            
-            log(`${estructuraDeformada ? 'Aplicando' : 'Removiendo'} deformación`);
-            
-            for (let i = 0; i < 8; i++) {
-                const nodo = document.getElementById(`nodo-${i + 1}`);
-                if (nodo) {
-                    let x, y;
-                    
-                    if (estructuraDeformada) {
-                        const desplX = desplazamientos[i].x * FACTOR_AMPLIFICACION;
-                        const desplY = desplazamientos[i].y * FACTOR_AMPLIFICACION;
-                        x = posicionesOriginales[i][0] + desplX;
-                        y = posicionesOriginales[i][1] + desplY;
-                        
-                        nodo.setAttribute('position', `${x} ${y} 0`);
-                        nodo.setAttribute('color', '#ff8844');
-                    } else {
-                        x = posicionesOriginales[i][0];
-                        y = posicionesOriginales[i][1];
-                        
-                        nodo.setAttribute('position', `${x} ${y} 0`);
-                        nodo.setAttribute('color', '#ff4444');
-                    }
-                }
-            }
-            
-            // Recrear líneas con nuevo color
-            setTimeout(() => crearLineas(), 300);
-            
-            const btn = document.getElementById('btn-deform');
-            btn.textContent = estructuraDeformada ? '↩️ Original' : '🔧 Deformar';
-            btn.style.background = estructuraDeformada ? '#ff6600' : '#00aa00';
-            
-            actualizarEstado(estructuraDeformada ? 'Mostrando deformaciones amplificadas' : 'Estructura en estado original');
-        }
-        
-        // Resetear (actualizado para limpiar elementos HTML)
-        function resetear() {
-            log('=== RESETEANDO APLICACIÓN ===');
-            
+            // Stop camera
             if (cameraStream) {
                 cameraStream.getTracks().forEach(track => track.stop());
                 cameraStream = null;
-                log('Stream de cámara detenido');
             }
             
+            // Hide video
             document.getElementById('camera-video').classList.remove('show');
-            document.getElementById('touch-overlay').classList.remove('active');
+            document.getElementById('touch-area').classList.remove('active');
             
-            // Limpiar estructura HTML AR
-            const arHtmlStructure = document.getElementById('ar-html-structure');
-            if (arHtmlStructure) {
-                arHtmlStructure.remove();
-                log('Estructura HTML AR eliminada');
-            }
+            // Remove AR structure
+            const arStructure = document.getElementById('ar-structure');
+            if (arStructure) arStructure.remove();
             
-            // Limpiar elementos de prueba A-Frame
-            const testElements = ['test-red', 'test-green', 'test-blue', 'test-yellow', 'test-magenta', 'overlay-3d'];
-            testElements.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) element.remove();
-            });
+            // Reset state
+            isAR = false;
+            isPlaced = false;
+            isDeformed = false;
             
-            modoAR = false;
-            estructuraColocada = false;
-            estructuraDeformada = false;
-            
-            log('Variables de estado reseteadas');
-            
-            // Limpiar líneas A-Frame
+            // Remove lines
             for (let i = 1; i <= 8; i++) {
-                const linea = document.getElementById(`linea-${i}`);
-                if (linea) linea.remove();
+                const line = document.getElementById(`line${i}`);
+                if (line) line.remove();
             }
-            log('Líneas A-Frame eliminadas');
             
-            // Resetear nodos A-Frame a posiciones originales
+            // Reset nodes
             for (let i = 0; i < 8; i++) {
-                const nodo = document.getElementById(`nodo-${i + 1}`);
-                if (nodo) {
-                    nodo.setAttribute('position', `${posicionesOriginales[i][0]} ${posicionesOriginales[i][1]} 0`);
-                    nodo.setAttribute('color', '#ff4444');
-                    nodo.setAttribute('radius', '0.3');
-                    nodo.removeAttribute('material');
-                    nodo.setAttribute('visible', 'true');
-                    
-                    // Limpiar luces añadidas
-                    const luz = nodo.querySelector('a-light');
-                    if (luz) luz.remove();
+                const node = document.getElementById(`node${i + 1}`);
+                if (node) {
+                    node.setAttribute('position', `${originalPositions[i][0]} ${originalPositions[i][1]} 0`);
+                    node.setAttribute('color', '#ff4444');
                 }
             }
-            log('Nodos A-Frame reseteados');
             
-            // Resetear plano base
-            const basePlane = document.getElementById('base-plane');
-            if (basePlane) {
-                basePlane.setAttribute('color', '#ffffff');
-                basePlane.setAttribute('opacity', '0.3');
-                basePlane.setAttribute('visible', 'true');
-            }
-            
-            // Resetear container principal
-            const container = document.getElementById('estructura-container');
-            if (container) {
-                container.setAttribute('visible', 'true');
-                container.removeAttribute('animation');
-            }
-            
-            // Resetear botones
-            document.getElementById('btn-3d').style.background = '#00aa00';
-            document.getElementById('btn-ar').style.background = '#00aa00';
+            // Reset UI
+            document.getElementById('btn-3d').classList.remove('active');
+            document.getElementById('btn-ar').classList.remove('active');
             document.getElementById('btn-place').disabled = true;
             document.getElementById('btn-deform').disabled = true;
             document.getElementById('btn-deform').textContent = '🔧 Deformar';
             document.getElementById('btn-deform').style.background = '#00aa00';
             
-            cerrarModal();
-            cambiarA3D();
-            
-            log('=== RESET COMPLETADO ===');
-        } RESET COMPLETADO ===');
+            hideModal();
+            switch3D();
         }
         
-        // Inicialización
-        window.addEventListener('DOMContentLoaded', function() {
-            log('Aplicación iniciada');
-            cambiarA3D();
+        // Event handlers - DIRECT ASSIGNMENT
+        document.addEventListener('DOMContentLoaded', function() {
+            log('DOM cargado, configurando eventos');
+            
+            // Button event handlers
+            document.getElementById('btn-3d').onclick = switch3D;
+            document.getElementById('btn-ar').onclick = switchAR;
+            document.getElementById('btn-place').onclick = placeStructure;
+            document.getElementById('btn-deform').onclick = toggleDeformation;
+            document.getElementById('btn-reset').onclick = reset;
+            
+            log('Eventos configurados');
+            
+            // Initialize in 3D mode
+            switch3D();
         });
         
-        // Limpieza
+        // Cleanup
         window.addEventListener('beforeunload', function() {
             if (cameraStream) {
                 cameraStream.getTracks().forEach(track => track.stop());
             }
         });
-        
-        // Exponer funciones globalmente
-        window.cambiarA3D = cambiarA3D;
-        window.cambiarAR = cambiarAR;
-        window.colocarEstructura = colocarEstructura;
-        window.toggleDeformacion = toggleDeformacion;
-        window.resetear = resetear;
-        window.toggleDebug = toggleDebug;
     </script>
 </body>
 </html>
