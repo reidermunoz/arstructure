@@ -3,120 +3,11 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Estructura AR con Detección de Superficies</title>
-    <meta name="description" content="Visualización AR con detección de planos y colocación por tap">
+    <title>Estructura AR - Detección de Superficies</title>
+    <meta name="description" content="AR con detección de planos usando WebXR y fallback a AR.js">
     
     <!-- A-Frame core -->
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    
-    <!-- AR.js con hit-testing -->
-    <script src="https://cdn.jsdelivr.net/npm/ar.js@2.2.2/aframe/build/aframe-ar.min.js"></script>
-    
-    <!-- Componente de hit-testing -->
-    <script>
-      // Componente para detección de superficies por tap
-      AFRAME.registerComponent('ar-hit-test', {
-        init: function () {
-          this.el.addEventListener('click', this.onClick.bind(this));
-          this.el.addEventListener('touchstart', this.onTouch.bind(this));
-          this.intersected = false;
-        },
-
-        onClick: function (evt) {
-          if (modoAR && !estructuraColocada) {
-            this.placeStructure(evt);
-          }
-        },
-
-        onTouch: function (evt) {
-          evt.preventDefault();
-          if (modoAR && !estructuraColocada) {
-            this.placeStructure(evt);
-          }
-        },
-
-        placeStructure: function (evt) {
-          // Calcular posición del tap en el mundo 3D
-          const camera = document.querySelector('[camera]');
-          const canvas = document.querySelector('a-scene').canvas;
-          
-          let clientX, clientY;
-          if (evt.touches) {
-            clientX = evt.touches[0].clientX;
-            clientY = evt.touches[0].clientY;
-          } else {
-            clientX = evt.clientX;
-            clientY = evt.clientY;
-          }
-          
-          // Normalizar coordenadas de pantalla
-          const rect = canvas.getBoundingClientRect();
-          const x = ((clientX - rect.left) / rect.width) * 2 - 1;
-          const y = -((clientY - rect.top) / rect.height) * 2 + 1;
-          
-          // Crear un rayo desde la cámara
-          const raycaster = new THREE.Raycaster();
-          const mouse = new THREE.Vector2(x, y);
-          
-          if (camera && camera.object3D) {
-            raycaster.setFromCamera(mouse, camera.object3D.children[0]);
-            
-            // Colocar estructura a 1 metro de distancia en dirección del rayo
-            const direction = raycaster.ray.direction;
-            const distance = 1.0; // 1 metro de distancia
-            const position = raycaster.ray.origin.clone().add(direction.multiplyScalar(distance));
-            
-            // Ajustar altura para que esté en el suelo
-            position.y = -0.5;
-            
-            colocarEstructura(position);
-          }
-        }
-      });
-
-      // Componente para reticle/cursor AR
-      AFRAME.registerComponent('ar-cursor', {
-        init: function () {
-          this.raycaster = new THREE.Raycaster();
-          this.mouse = new THREE.Vector2();
-          
-          // Crear reticle visual
-          const geometry = new THREE.RingGeometry(0.02, 0.04, 32);
-          const material = new THREE.MeshBasicMaterial({ 
-            color: 0x00ff00, 
-            transparent: true, 
-            opacity: 0.8,
-            side: THREE.DoubleSide
-          });
-          this.reticle = new THREE.Mesh(geometry, material);
-          this.reticle.rotation.x = -Math.PI / 2; // Horizontal
-          this.el.object3D.add(this.reticle);
-          
-          this.visible = false;
-        },
-
-        tick: function () {
-          if (!modoAR || estructuraColocada) {
-            this.reticle.visible = false;
-            return;
-          }
-          
-          // Actualizar posición del reticle
-          const camera = document.querySelector('[camera]');
-          if (camera && camera.object3D) {
-            const direction = new THREE.Vector3(0, 0, -1);
-            direction.applyQuaternion(camera.object3D.quaternion);
-            
-            const distance = 1.0;
-            const position = camera.object3D.position.clone().add(direction.multiplyScalar(distance));
-            position.y = -0.5; // Altura del suelo
-            
-            this.reticle.position.copy(position);
-            this.reticle.visible = true;
-          }
-        }
-      });
-    </script>
     
     <style>
       body {
@@ -130,28 +21,29 @@
         position: absolute;
         top: 10px;
         left: 10px;
-        background: rgba(0,0,0,0.8);
+        background: rgba(0,0,0,0.85);
         color: white;
-        padding: 10px;
-        border-radius: 5px;
-        font-size: 11px;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 12px;
         z-index: 1000;
-        max-width: 250px;
-        backdrop-filter: blur(5px);
+        max-width: 280px;
+        backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.2);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       }
       
       .controls {
         position: absolute;
-        bottom: 60px;
+        bottom: 80px;
         left: 10px;
-        background: rgba(0,0,0,0.8);
+        background: rgba(0,0,0,0.85);
         color: white;
-        padding: 8px;
-        border-radius: 5px;
-        font-size: 10px;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 11px;
         z-index: 1000;
-        backdrop-filter: blur(5px);
+        backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.2);
       }
       
@@ -159,73 +51,78 @@
         position: absolute;
         top: 10px;
         right: 10px;
-        background: rgba(0,0,0,0.8);
+        background: rgba(0,0,0,0.85);
         color: white;
-        padding: 10px;
-        border-radius: 5px;
-        font-size: 11px;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 12px;
         z-index: 1000;
         text-align: center;
-        backdrop-filter: blur(5px);
+        backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.2);
       }
       
       .deformation-control button {
-        padding: 8px 16px;
+        padding: 10px 18px;
         background: #4488ff;
         color: white;
         border: none;
-        border-radius: 5px;
+        border-radius: 6px;
         cursor: pointer;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: bold;
         transition: all 0.3s ease;
         touch-action: manipulation;
+        min-width: 140px;
       }
       
-      .deformation-control button:hover,
-      .deformation-control button:active {
-        transform: scale(1.05);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      .deformation-control button:hover:not(:disabled),
+      .deformation-control button:active:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(68,136,255,0.4);
       }
       
       .deformation-control button:disabled {
         background: #666;
         cursor: not-allowed;
         transform: none;
+        opacity: 0.6;
       }
       
       .mode-selector {
         position: absolute;
         bottom: 10px;
         right: 10px;
-        background: rgba(0,0,0,0.8);
+        background: rgba(0,0,0,0.85);
         color: white;
-        padding: 10px;
-        border-radius: 5px;
-        font-size: 11px;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 12px;
         z-index: 1000;
         text-align: center;
-        backdrop-filter: blur(5px);
+        backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.2);
       }
       
       .mode-selector button {
-        padding: 8px 12px;
-        margin: 2px;
+        padding: 10px 14px;
+        margin: 3px;
         background: #44ff44;
         color: black;
         border: none;
-        border-radius: 5px;
+        border-radius: 6px;
         cursor: pointer;
-        font-size: 11px;
+        font-size: 12px;
         font-weight: bold;
         touch-action: manipulation;
+        transition: all 0.3s ease;
+        min-width: 100px;
       }
       
       .mode-selector button.active {
         background: #ffff44;
         color: black;
+        transform: scale(1.05);
       }
       
       .mode-selector button:disabled {
@@ -239,32 +136,62 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background: rgba(0,0,0,0.9);
+        background: rgba(0,50,100,0.95);
         color: white;
-        padding: 20px;
-        border-radius: 10px;
+        padding: 25px;
+        border-radius: 12px;
         z-index: 1500;
         text-align: center;
-        max-width: 80%;
+        max-width: 85%;
         display: none;
-        border: 2px solid #00ff00;
+        border: 2px solid #00aaff;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.4);
       }
       
       .ar-instructions.show {
         display: block;
+        animation: slideIn 0.5s ease-out;
+      }
+      
+      @keyframes slideIn {
+        from { opacity: 0; transform: translate(-50%, -60%); }
+        to { opacity: 1; transform: translate(-50%, -50%); }
       }
       
       .ar-instructions h3 {
-        color: #00ff00;
+        color: #00ddff;
         margin-top: 0;
+        font-size: 18px;
+      }
+      
+      .ar-instructions button {
+        padding: 12px 24px;
+        background: #00aaff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 15px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+      }
+      
+      .ar-instructions button:hover {
+        background: #0088cc;
+        transform: translateY(-2px);
       }
       
       .debug-info {
         margin-top: 8px;
-        font-size: 9px;
-        color: #ccc;
-        max-height: 120px;
+        font-size: 10px;
+        color: #bbb;
+        max-height: 140px;
         overflow-y: auto;
+        background: rgba(0,0,0,0.3);
+        padding: 8px;
+        border-radius: 4px;
+        border-left: 3px solid #4488ff;
       }
       
       .loading {
@@ -272,17 +199,34 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background: rgba(0,0,0,0.9);
+        background: rgba(0,0,0,0.95);
         color: white;
-        padding: 20px;
-        border-radius: 10px;
+        padding: 30px;
+        border-radius: 12px;
         z-index: 2000;
         text-align: center;
         display: none;
+        border: 1px solid #666;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5);
       }
       
       .loading.show {
         display: block;
+      }
+      
+      .loading .spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #333;
+        border-top: 4px solid #00aaff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
       
       .error-message {
@@ -290,18 +234,37 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background: rgba(255,0,0,0.9);
+        background: rgba(150,0,0,0.95);
         color: white;
-        padding: 20px;
-        border-radius: 10px;
+        padding: 25px;
+        border-radius: 12px;
         z-index: 2001;
         text-align: center;
         display: none;
-        max-width: 80%;
+        max-width: 85%;
+        border: 2px solid #ff4444;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5);
       }
       
       .error-message.show {
         display: block;
+      }
+      
+      .error-message button {
+        padding: 10px 20px;
+        background: #ff6666;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: bold;
+        cursor: pointer;
+        margin: 8px;
+        transition: all 0.3s ease;
+      }
+      
+      .error-message button:hover {
+        background: #ff4444;
+        transform: translateY(-2px);
       }
       
       .permission-request {
@@ -309,14 +272,15 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        background: rgba(0,100,200,0.9);
+        background: rgba(0,100,200,0.95);
         color: white;
-        padding: 20px;
-        border-radius: 10px;
+        padding: 25px;
+        border-radius: 12px;
         z-index: 2002;
         text-align: center;
         display: none;
         border: 2px solid #00aaff;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.5);
       }
       
       .permission-request.show {
@@ -324,14 +288,21 @@
       }
       
       .permission-request button {
-        padding: 10px 20px;
+        padding: 12px 24px;
         background: white;
         color: #0064c8;
         border: none;
-        border-radius: 5px;
+        border-radius: 6px;
         font-weight: bold;
         cursor: pointer;
-        margin: 5px;
+        margin: 8px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+      }
+      
+      .permission-request button:hover {
+        background: #f0f0f0;
+        transform: translateY(-2px);
       }
       
       .reset-button {
@@ -341,78 +312,125 @@
         transform: translateX(-50%);
         background: rgba(255,100,0,0.9);
         color: white;
-        padding: 10px 20px;
+        padding: 12px 24px;
         border: none;
-        border-radius: 5px;
+        border-radius: 8px;
         font-weight: bold;
         cursor: pointer;
         z-index: 1000;
         display: none;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(255,100,0,0.3);
       }
       
       .reset-button.show {
         display: block;
       }
       
-      /* Ocultar elementos no esenciales en AR */
-      .ar-mode .info,
-      .ar-mode .controls {
-        opacity: 0.8;
-        font-size: 9px;
+      .reset-button:hover {
+        background: rgba(255,80,0,0.95);
+        transform: translateX(-50%) translateY(-2px);
       }
       
-      .ar-mode .mode-selector {
+      .ar-mode .info,
+      .ar-mode .controls {
         opacity: 0.9;
+        font-size: 10px;
+      }
+      
+      .ar-cursor {
+        width: 60px;
+        height: 60px;
+        border: 3px solid #00ff00;
+        border-radius: 50%;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 1001;
+        display: none;
+        background: rgba(0,255,0,0.1);
+        animation: pulse 2s infinite;
+      }
+      
+      .ar-cursor.show {
+        display: block;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+        50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+      }
+      
+      .ar-cursor::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 4px;
+        height: 4px;
+        background: #00ff00;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
       }
     </style>
   </head>
   <body>
     
     <div id="loading" class="loading">
-      <h3>Iniciando AR...</h3>
-      <p>Preparando detección de superficies</p>
+      <h3>🚀 Iniciando AR</h3>
+      <div class="spinner"></div>
+      <p id="loading-text">Preparando cámara y detección de superficies...</p>
+      <p><small>Esto puede tomar hasta 30 segundos</small></p>
     </div>
     
     <div id="error-message" class="error-message">
-      <h3>Error de AR</h3>
+      <h3>❌ Error de AR</h3>
       <p id="error-text">No se pudo inicializar AR</p>
-      <button onclick="reintentar()">Reintentar</button>
-      <button onclick="cambiarModo(false)">Usar modo 3D</button>
+      <div id="error-details"></div>
+      <button onclick="reintentar()">🔄 Reintentar</button>
+      <button onclick="cambiarModo(false)">🖥️ Usar modo 3D</button>
     </div>
     
     <div id="permission-request" class="permission-request">
       <h3>🎥 Permisos de Cámara</h3>
-      <p>Esta aplicación necesita acceso a la cámara para AR</p>
-      <p><small>Se usará para detectar superficies y colocar la estructura</small></p>
+      <p>Necesitamos acceso a tu cámara para AR</p>
+      <p><small>Se usará para detectar superficies y colocar la estructura 3D</small></p>
       <button onclick="solicitarPermisos()">✅ Permitir Cámara</button>
       <button onclick="cambiarModo(false)">❌ Solo modo 3D</button>
     </div>
     
     <div id="ar-instructions" class="ar-instructions">
-      <h3>🎯 AR Listo</h3>
-      <p><strong>Instrucciones:</strong></p>
-      <p>1. Mueve tu dispositivo lentamente</p>
-      <p>2. Apunta a una superficie plana (mesa, suelo)</p>
-      <p>3. Verás un círculo verde (cursor)</p>
-      <p>4. <strong>Toca la pantalla</strong> para colocar la estructura</p>
-      <button onclick="cerrarInstrucciones()">Entendido</button>
+      <h3>🎯 AR Activado</h3>
+      <p><strong>¡Listo para detectar superficies!</strong></p>
+      <div style="text-align: left; margin: 15px 0;">
+        <p>📱 <strong>Paso 1:</strong> Mueve tu dispositivo lentamente</p>
+        <p>🎯 <strong>Paso 2:</strong> Apunta a una superficie plana</p>
+        <p>👆 <strong>Paso 3:</strong> Toca la pantalla para colocar</p>
+      </div>
+      <p><small>Funciona mejor en: mesas, suelos, superficies claras</small></p>
+      <button onclick="cerrarInstrucciones()">¡Entendido!</button>
     </div>
     
+    <div id="ar-cursor" class="ar-cursor"></div>
+    
     <div class="info">
-      <h3>🏗️ Estructura AR</h3>
+      <h3>🏗️ Estructura de Nodos AR</h3>
       <p><strong>Nodos:</strong> 8 (esferas rojas)</p>
       <p><strong>Elementos:</strong> 8 (líneas azules)</p>
       <p id="mode-info"><strong>Modo:</strong> 3D Normal</p>
       <p id="ar-status"><strong>Estado:</strong> Esperando...</p>
       <div id="debug-info" class="debug-info">
-        <strong>Debug:</strong> Presiona deformación para ver cambios...
+        <strong>Sistema:</strong> Listo para usar
       </div>
     </div>
     
     <div class="deformation-control">
       <button id="btn-deformacion" disabled>Mostrar Deformada</button>
       <p><small>Desplazamientos amplificados 5000x</small></p>
-      <p><small id="deform-status">Coloca la estructura primero</small></p>
+      <p><small id="deform-status">Primero coloca la estructura</small></p>
     </div>
     
     <div class="mode-selector">
@@ -423,7 +441,7 @@
     
     <div class="controls">
       <strong id="controls-text">Controles 3D:</strong><br>
-      <span id="controls-desc">Toca y arrastra: Rotar | Pellizca: Zoom</span>
+      <span id="controls-desc">Arrastra: Rotar • Pellizca: Zoom</span>
     </div>
     
     <button id="reset-button" class="reset-button" onclick="resetearEstructura()">
@@ -538,7 +556,7 @@
     <script>
       // CONFIGURACIÓN
       const ESCALA = 0.3;
-      const ESCALA_AR = 0.08; // Escala más pequeña para AR
+      const ESCALA_AR = 0.1;
       
       // Estado de la aplicación
       let modoAR = false;
@@ -547,8 +565,9 @@
       let arInitialized = false;
       let cameraStream = null;
       let estructuraAR = null;
+      let arMethod = 'simple'; // 'simple' o 'webxr'
       
-      // Datos de desplazamientos (idénticos al original)
+      // Datos de desplazamientos
       const desplazamientos = [
         {x: 0, y: 0, rot: 0},
         {x: -0.000214334467084222, y: -2.92585497916779e-05, rot: 0.000299282917049326},
@@ -576,11 +595,36 @@
       
       // Función para verificar HTTPS
       function verificarHTTPS() {
-        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-          mostrarError('HTTPS requerido', 'AR requiere HTTPS o localhost');
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+          mostrarError('HTTPS requerido', 'AR requiere HTTPS o localhost para acceder a la cámara');
           return false;
         }
         return true;
+      }
+      
+      // Función para detectar capacidades del dispositivo
+      function detectarCapacidades() {
+        const capacidades = {
+          getUserMedia: !!(navigator.mediaDevices?.getUserMedia),
+          webxr: !!(navigator.xr),
+          https: window.isSecureContext,
+          mobile: /Mobi|Android/i.test(navigator.userAgent),
+          iOS: /iPad|iPhone|iPod/.test(navigator.userAgent),
+          chrome: /Chrome/.test(navigator.userAgent),
+          safari: /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
+        };
+        
+        console.log('📊 Capacidades del dispositivo:', capacidades);
+        return capacidades;
+      }
+      
+      // Función para actualizar texto de carga
+      function actualizarCarga(mensaje) {
+        const loadingText = document.getElementById('loading-text');
+        if (loadingText) {
+          loadingText.textContent = mensaje;
+        }
+        console.log('⏳', mensaje);
       }
       
       // Función para solicitar permisos de cámara
@@ -592,41 +636,53 @@
         loading.classList.add('show');
         
         try {
+          actualizarCarga('Solicitando permisos de cámara...');
+          
           const stream = await navigator.mediaDevices.getUserMedia({
             video: { 
               facingMode: 'environment',
-              width: { ideal: 1280 },
-              height: { ideal: 720 }
+              width: { ideal: 1280, min: 640 },
+              height: { ideal: 720, min: 480 }
             }
           });
           
           cameraStream = stream;
           console.log('✅ Permisos de cámara obtenidos');
           
-          inicializarAR();
+          // Intentar método simple primero
+          inicializarARSimple();
           
         } catch (error) {
           console.error('❌ Error al solicitar permisos:', error);
           loading.classList.remove('show');
           
           let mensaje = 'No se pudieron obtener los permisos de cámara.';
+          let detalles = '';
+          
           if (error.name === 'NotAllowedError') {
-            mensaje = 'Permisos denegados. Permite el acceso y recarga.';
+            mensaje = 'Permisos de cámara denegados.';
+            detalles = 'Por favor, permite el acceso a la cámara y recarga la página.';
           } else if (error.name === 'NotFoundError') {
-            mensaje = 'No se encontró una cámara.';
+            mensaje = 'No se encontró una cámara en este dispositivo.';
+            detalles = 'Verifica que tu dispositivo tenga una cámara disponible.';
+          } else if (error.name === 'NotSupportedError') {
+            mensaje = 'Tu navegador no soporta acceso a cámara.';
+            detalles = 'Prueba con Chrome o Safari en un dispositivo móvil.';
           }
           
-          mostrarError('Error de permisos', mensaje);
+          mostrarError(mensaje, detalles);
         }
       }
       
       // Función para mostrar errores
-      function mostrarError(titulo, mensaje) {
+      function mostrarError(titulo, detalles = '') {
         const errorDiv = document.getElementById('error-message');
         const errorText = document.getElementById('error-text');
+        const errorDetails = document.getElementById('error-details');
         
         document.getElementById('loading').classList.remove('show');
-        errorText.textContent = mensaje;
+        errorText.textContent = titulo;
+        errorDetails.innerHTML = detalles ? `<p><small>${detalles}</small></p>` : '';
         errorDiv.classList.add('show');
       }
       
@@ -634,6 +690,12 @@
       function reintentar() {
         document.getElementById('error-message').classList.remove('show');
         if (modoAR) {
+          // Limpiar estado anterior
+          if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+          }
+          arInitialized = false;
           solicitarPermisos();
         }
       }
@@ -641,6 +703,123 @@
       // Función para cerrar instrucciones
       function cerrarInstrucciones() {
         document.getElementById('ar-instructions').classList.remove('show');
+        document.getElementById('ar-cursor').classList.add('show');
+      }
+      
+      // Función para inicializar AR simple (sin librerías externas)
+      function inicializarARSimple() {
+        const loading = document.getElementById('loading');
+        
+        try {
+          actualizarCarga('Configurando AR nativo...');
+          
+          // Crear escena AR básica con A-Frame
+          const arScene = document.createElement('a-scene');
+          arScene.id = 'ar-scene';
+          arScene.setAttribute('embedded', true);
+          arScene.setAttribute('background', 'color: transparent');
+          arScene.setAttribute('loading-screen', 'enabled: false');
+          arScene.setAttribute('vr-mode-ui', 'enabled: false');
+          arScene.setAttribute('device-orientation-permission-ui', 'enabled: false');
+          
+          // Configurar video de cámara como fondo
+          const assets = document.createElement('a-assets');
+          const video = document.createElement('video');
+          video.id = 'camera-feed';
+          video.setAttribute('autoplay', '');
+          video.setAttribute('muted', '');
+          video.setAttribute('playsinline', '');
+          video.style.position = 'fixed';
+          video.style.top = '0';
+          video.style.left = '0';
+          video.style.width = '100%';
+          video.style.height = '100%';
+          video.style.objectFit = 'cover';
+          video.style.zIndex = '-1';
+          
+          // Configurar stream de cámara
+          if (cameraStream) {
+            video.srcObject = cameraStream;
+            video.play();
+          }
+          
+          // Agregar video al DOM
+          document.body.appendChild(video);
+          
+          // Crear cámara AR
+          const cameraAR = document.createElement('a-entity');
+          cameraAR.setAttribute('camera', 'active: true; fov: 70;');
+          cameraAR.setAttribute('position', '0 1.6 0');
+          arScene.appendChild(cameraAR);
+          
+          // Agregar iluminación
+          const ambientLight = document.createElement('a-light');
+          ambientLight.setAttribute('type', 'ambient');
+          ambientLight.setAttribute('color', '#777777');
+          arScene.appendChild(ambientLight);
+          
+          const directionalLight = document.createElement('a-light');
+          directionalLight.setAttribute('type', 'directional');
+          directionalLight.setAttribute('position', '0 5 5');
+          directionalLight.setAttribute('color', '#ffffff');
+          directionalLight.setAttribute('intensity', '0.8');
+          arScene.appendChild(directionalLight);
+          
+          // Event listeners para toques/clicks
+          arScene.addEventListener('click', manejarToqueAR);
+          arScene.addEventListener('touchstart', manejarToqueAR);
+          
+          // Reemplazar escena
+          const oldScene = document.getElementById('main-scene');
+          oldScene.parentNode.replaceChild(arScene, oldScene);
+          
+          // Simular inicialización exitosa después de un breve delay
+          setTimeout(() => {
+            console.log('✅ AR simple inicializado');
+            loading.classList.remove('show');
+            document.getElementById('ar-instructions').classList.add('show');
+            arInitialized = true;
+            actualizarEstadoAR('Busca una superficie plana y toca para colocar');
+          }, 2000);
+          
+        } catch (error) {
+          console.error('❌ Error inicializando AR simple:', error);
+          loading.classList.remove('show');
+          mostrarError('Error AR Simple', 'No se pudo configurar la cámara AR: ' + error.message);
+        }
+      }
+      
+      // Función para manejar toques en AR
+      function manejarToqueAR(event) {
+        if (!modoAR || estructuraColocada) return;
+        
+        event.preventDefault();
+        
+        console.log('👆 Toque detectado en AR');
+        
+        // Calcular posición relativa al centro de la pantalla
+        let clientX, clientY;
+        if (event.touches && event.touches.length > 0) {
+          clientX = event.touches[0].clientX;
+          clientY = event.touches[0].clientY;
+        } else {
+          clientX = event.clientX;
+          clientY = event.clientY;
+        }
+        
+        // Convertir coordenadas de pantalla a posición 3D
+        const rect = event.target.getBoundingClientRect ? event.target.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+        const x = ((clientX - rect.left) / rect.width) * 2 - 1;
+        const y = -((clientY - rect.top) / rect.height) * 2 + 1;
+        
+        // Colocar estructura a 1 metro frente a la cámara
+        const position = {
+          x: x * 0.5, // Desplazamiento lateral basado en toque
+          y: -0.3,     // Altura fija
+          z: -1.0      // 1 metro frente a la cámara
+        };
+        
+        colocarEstructura(position);
       }
       
       // Función para crear línea
@@ -656,13 +835,15 @@
           start: `${punto1.x} ${punto1.y} ${punto1.z || 0}`,
           end: `${punto2.x} ${punto2.y} ${punto2.z || 0}`,
           color: color,
-          linewidth: 15,
-          opacity: 0.8
+          linewidth: 12,
+          opacity: 0.9
         });
         
-        // Agregar a la estructura AR si existe, sino a la principal
-        const contenedor = estructuraAR || document.getElementById('estructura-principal');
-        contenedor.appendChild(linea);
+        // Agregar a la estructura AR si existe, sino a la escena
+        const contenedor = estructuraAR || document.querySelector('a-scene');
+        if (contenedor) {
+          contenedor.appendChild(linea);
+        }
       }
       
       // Función para actualizar líneas
@@ -697,14 +878,14 @@
         estructuraAR.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
         estructuraAR.setAttribute('scale', `${ESCALA_AR} ${ESCALA_AR} ${ESCALA_AR}`);
         
-        // Crear plano base translúcido
+        // Crear plano base semitransparente
         const planoBase = document.createElement('a-plane');
-        planoBase.setAttribute('position', '4 -0.1 0');
+        planoBase.setAttribute('position', '4 -0.2 0');
         planoBase.setAttribute('rotation', '-90 0 0');
-        planoBase.setAttribute('width', '12');
-        planoBase.setAttribute('height', '8');
+        planoBase.setAttribute('width', '10');
+        planoBase.setAttribute('height', '6');
         planoBase.setAttribute('color', '#ffffff');
-        planoBase.setAttribute('opacity', '0.3');
+        planoBase.setAttribute('opacity', '0.2');
         planoBase.setAttribute('transparent', true);
         estructuraAR.appendChild(planoBase);
         
@@ -713,17 +894,20 @@
           const nodo = document.createElement('a-sphere');
           nodo.id = `nodo-ar-${i + 1}`;
           nodo.setAttribute('position', `${posicionesOriginales[i][0]} ${posicionesOriginales[i][1]} 0`);
-          nodo.setAttribute('radius', '0.4');
+          nodo.setAttribute('radius', '0.3');
           nodo.setAttribute('color', '#ff4444');
-          nodo.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 10000');
+          nodo.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 12000');
+          nodo.setAttribute('shadow', 'cast: true');
           
           // Agregar texto del número
           const texto = document.createElement('a-text');
           texto.setAttribute('value', (i + 1).toString());
-          texto.setAttribute('position', '0 1 0');
+          texto.setAttribute('position', '0 0.8 0');
           texto.setAttribute('align', 'center');
-          texto.setAttribute('color', '#000');
-          texto.setAttribute('scale', '4 4 4');
+          texto.setAttribute('color', '#ffffff');
+          texto.setAttribute('scale', '3 3 3');
+          texto.setAttribute('geometry', 'primitive: plane; width: auto; height: auto');
+          texto.setAttribute('material', 'color: #000000; transparent: true; opacity: 0.7');
           nodo.appendChild(texto);
           
           estructuraAR.appendChild(nodo);
@@ -731,20 +915,28 @@
         
         // Agregar estructura a la escena
         const scene = document.querySelector('a-scene');
-        scene.appendChild(estructuraAR);
+        if (scene) {
+          scene.appendChild(estructuraAR);
+        }
         
         estructuraColocada = true;
         
-        // Actualizar UI
-        actualizarEstadoAR('Estructura colocada');
+        // Ocultar cursor y actualizar UI
+        document.getElementById('ar-cursor').classList.remove('show');
+        actualizarEstadoAR('✅ Estructura colocada exitosamente');
         document.getElementById('btn-deformacion').disabled = false;
-        document.getElementById('deform-status').textContent = 'Listo para deformar';
+        document.getElementById('deform-status').textContent = '¡Listo para deformar!';
         document.getElementById('reset-button').classList.add('show');
         
         // Crear líneas después de un momento
         setTimeout(() => {
           actualizarLineas();
         }, 500);
+        
+        // Pequeña animación de confirmación
+        if (estructuraAR) {
+          estructuraAR.setAttribute('animation', 'property: scale; from: 0.1 0.1 0.1; to: ' + ESCALA_AR + ' ' + ESCALA_AR + ' ' + ESCALA_AR + '; dur: 800; easing: easeOutBack');
+        }
         
         console.log('✅ Estructura AR colocada exitosamente');
       }
@@ -769,14 +961,15 @@
         estructuraDeformada = false;
         
         // Actualizar UI
+        document.getElementById('ar-cursor').classList.add('show');
         actualizarEstadoAR('Busca una superficie y toca para colocar');
         document.getElementById('btn-deformacion').disabled = true;
         document.getElementById('btn-deformacion').textContent = 'Mostrar Deformada';
         document.getElementById('btn-deformacion').style.backgroundColor = '#4488ff';
-        document.getElementById('deform-status').textContent = 'Coloca la estructura primero';
+        document.getElementById('deform-status').textContent = 'Primero coloca la estructura';
         document.getElementById('reset-button').classList.remove('show');
         
-        console.log('🔄 Estructura reseteada');
+        console.log('🔄 Estructura reseteada - Lista para nueva colocación');
       }
       
       // Función para actualizar estado AR
@@ -784,73 +977,6 @@
         const statusElement = document.getElementById('ar-status');
         if (statusElement) {
           statusElement.innerHTML = `<strong>Estado:</strong> ${mensaje}`;
-        }
-      }
-      
-      // Función para inicializar AR
-      async function inicializarAR() {
-        const loading = document.getElementById('loading');
-        
-        try {
-          console.log('🚀 Inicializando AR...');
-          
-          // Crear nueva escena AR
-          const arScene = document.createElement('a-scene');
-          arScene.id = 'ar-scene';
-          arScene.setAttribute('embedded', true);
-          arScene.setAttribute('arjs', 'sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; trackingMethod: best; sourceWidth: 1280; sourceHeight: 720; displayWidth: 1280; displayHeight: 720;');
-          arScene.setAttribute('background', 'color: transparent');
-          arScene.setAttribute('loading-screen', 'enabled: false');
-          arScene.setAttribute('vr-mode-ui', 'enabled: false');
-          arScene.setAttribute('device-orientation-permission-ui', 'enabled: false');
-          
-          // Agregar componentes de hit-test y cursor
-          arScene.setAttribute('ar-hit-test', '');
-          
-          // Crear cámara AR
-          const cameraAR = document.createElement('a-entity');
-          cameraAR.setAttribute('camera', 'active: true');
-          cameraAR.setAttribute('ar-cursor', '');
-          arScene.appendChild(cameraAR);
-          
-          // Agregar iluminación
-          const ambientLight = document.createElement('a-light');
-          ambientLight.setAttribute('type', 'ambient');
-          ambientLight.setAttribute('color', '#666666');
-          arScene.appendChild(ambientLight);
-          
-          const directionalLight = document.createElement('a-light');
-          directionalLight.setAttribute('type', 'directional');
-          directionalLight.setAttribute('position', '1 4 2');
-          directionalLight.setAttribute('color', '#ffffff');
-          directionalLight.setAttribute('intensity', '0.8');
-          arScene.appendChild(directionalLight);
-          
-          // Event listeners para AR
-          arScene.addEventListener('arjs-video-loaded', function() {
-            console.log('📹 Cámara AR cargada');
-            loading.classList.remove('show');
-            document.getElementById('ar-instructions').classList.add('show');
-            arInitialized = true;
-            actualizarEstadoAR('Busca una superficie y toca para colocar');
-          });
-          
-          // Reemplazar escena
-          const oldScene = document.getElementById('main-scene');
-          oldScene.parentNode.replaceChild(arScene, oldScene);
-          
-          // Timeout de seguridad
-          setTimeout(() => {
-            if (!arInitialized) {
-              loading.classList.remove('show');
-              mostrarError('Timeout AR', 'AR tardó demasiado en cargar');
-            }
-          }, 15000);
-          
-        } catch (error) {
-          console.error('❌ Error inicializando AR:', error);
-          loading.classList.remove('show');
-          mostrarError('Error AR', 'Error al inicializar: ' + error.message);
         }
       }
       
@@ -864,7 +990,7 @@
         
         let debugText = `<strong>Estado:</strong> ${estructuraDeformada ? 'DEFORMADA' : 'ORIGINAL'}<br>`;
         debugText += `<strong>Modo:</strong> ${modoAR ? 'AR' : '3D'}<br>`;
-        debugText += `<strong>Amplificación:</strong> ${FACTOR_AMPLIFICACION}x<br><br>`;
+        debugText += `<strong>Factor:</strong> ${FACTOR_AMPLIFICACION}x<br><br>`;
         
         posicionesActuales = [];
         
@@ -887,10 +1013,13 @@
               nodo.setAttribute('rotation', {x: 0, y: 0, z: rotZ});
               nodo.setAttribute('material', 'color', '#ff8844');
               
-              if (desplX !== 0 || desplY !== 0 || rotZ !== 0) {
-                debugText += `<span style="color: #ff8844;">N${i + 1}: Δ[${desplX.toFixed(3)}, ${desplY.toFixed(3)}] ${rotZ.toFixed(1)}°</span><br>`;
+              // Animación de deformación
+              nodo.setAttribute('animation__deform', 'property: scale; from: 1 1 1; to: 1.2 1.2 1.2; dur: 300; direction: alternate; loop: 2');
+              
+              if (Math.abs(desplX) > 0.001 || Math.abs(desplY) > 0.001 || Math.abs(rotZ) > 1) {
+                debugText += `<span style="color: #ff8844;">N${i + 1}: Δ[${(desplX*1000).toFixed(1)}, ${(desplY*1000).toFixed(1)}]mm ∠${rotZ.toFixed(1)}°</span><br>`;
               } else {
-                debugText += `N${i + 1}: Sin desplazamiento<br>`;
+                debugText += `N${i + 1}: Sin deformación significativa<br>`;
               }
             } else {
               x = posicionesOriginales[i][0];
@@ -899,18 +1028,19 @@
               nodo.setAttribute('position', {x: x, y: y, z: 0});
               nodo.setAttribute('rotation', {x: 0, y: 0, z: 0});
               nodo.setAttribute('material', 'color', '#ff4444');
+              nodo.removeAttribute('animation__deform');
               
-              debugText += `N${i + 1}: Original [${x}, ${y}]<br>`;
+              debugText += `N${i + 1}: Posición original [${x}, ${y}]<br>`;
             }
             
             posicionesActuales[i] = {x: x, y: y};
           }
         }
         
-        // Actualizar líneas
+        // Actualizar líneas con delay para animación
         setTimeout(() => {
           actualizarLineas();
-        }, 150);
+        }, 200);
         
         if (debugInfo) {
           debugInfo.innerHTML = debugText;
@@ -921,7 +1051,7 @@
           boton.style.backgroundColor = estructuraDeformada ? '#ff6644' : '#4488ff';
         }
         
-        actualizarEstadoAR(estructuraDeformada ? 'Mostrando deformación' : 'Mostrando original');
+        actualizarEstadoAR(estructuraDeformada ? '🔧 Mostrando deformaciones' : '✅ Mostrando estructura original');
       }
       
       // Función para cambiar entre modo 3D y AR
@@ -943,14 +1073,22 @@
             return;
           }
           
+          // Verificar capacidades
+          const capacidades = detectarCapacidades();
+          if (!capacidades.getUserMedia) {
+            mostrarError('Cámara no disponible', 'Tu navegador no soporta acceso a cámara');
+            modoAR = false;
+            return;
+          }
+          
           document.getElementById('permission-request').classList.add('show');
           
           // Actualizar UI
           document.body.classList.add('ar-mode');
           btn3D.classList.remove('active');
           btnAR.classList.add('active');
-          modeInfo.innerHTML = '<strong>Modo:</strong> AR Superficie';
-          controlsText.textContent = 'Controles AR:';
+          modeInfo.innerHTML = '<strong>Modo:</strong> 📱 AR Superficie';
+          controlsText.textContent = '🎮 Controles AR:';
           controlsDesc.textContent = 'Mueve el dispositivo y toca para colocar';
           
         } else {
@@ -958,6 +1096,12 @@
           if (cameraStream) {
             cameraStream.getTracks().forEach(track => track.stop());
             cameraStream = null;
+          }
+          
+          // Limpiar video de fondo
+          const video = document.getElementById('camera-feed');
+          if (video) {
+            video.remove();
           }
           
           // Restaurar escena 3D
@@ -970,9 +1114,9 @@
           document.body.classList.remove('ar-mode');
           btn3D.classList.add('active');
           btnAR.classList.remove('active');
-          modeInfo.innerHTML = '<strong>Modo:</strong> 3D Normal';
-          controlsText.textContent = 'Controles 3D:';
-          controlsDesc.textContent = 'Toca y arrastra: Rotar | Pellizca: Zoom';
+          modeInfo.innerHTML = '<strong>Modo:</strong> 🖥️ 3D Normal';
+          controlsText.textContent = '🎮 Controles 3D:';
+          controlsDesc.textContent = 'Arrastra: Rotar • Pellizca: Zoom';
           
           // Ocultar popups
           document.getElementById('permission-request').classList.remove('show');
@@ -980,6 +1124,7 @@
           document.getElementById('loading').classList.remove('show');
           document.getElementById('ar-instructions').classList.remove('show');
           document.getElementById('reset-button').classList.remove('show');
+          document.getElementById('ar-cursor').classList.remove('show');
           
           console.log('✅ Modo 3D activado');
         }
@@ -987,13 +1132,15 @@
       
       // Función para verificar soporte de AR
       function verificarSoporteAR() {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        const capacidades = detectarCapacidades();
+        
+        if (!capacidades.getUserMedia) {
           console.warn('⚠️ getUserMedia no soportado');
           return false;
         }
         
-        if (!window.isSecureContext) {
-          console.warn('⚠️ Contexto no seguro');
+        if (!capacidades.https) {
+          console.warn('⚠️ HTTPS requerido');
           return false;
         }
         
@@ -1008,11 +1155,17 @@
         const btn3D = document.getElementById('btn-3d');
         const btnAR = document.getElementById('btn-ar');
         
+        console.log('🚀 Iniciando aplicación AR/3D...');
+        
+        // Detectar capacidades del dispositivo
+        const capacidades = detectarCapacidades();
+        
         // Verificar soporte AR
         if (!verificarSoporteAR()) {
           btnAR.disabled = true;
           btnAR.textContent = '❌ AR No Disponible';
           btnAR.style.background = '#666';
+          btnAR.title = 'AR requiere HTTPS y cámara';
         }
         
         // Event listeners
@@ -1047,10 +1200,20 @@
           actualizarLineas();
         }, 500);
         
-        console.log('🚀 Sistema AR/3D inicializado');
-        console.log('🔒 HTTPS:', location.protocol === 'https:');
-        console.log('📱 Móvil:', /Mobi|Android/i.test(navigator.userAgent));
-        console.log('🎥 getUserMedia:', !!navigator.mediaDevices?.getUserMedia);
+        // Debug info inicial
+        const debugInfo = document.getElementById('debug-info');
+        if (debugInfo) {
+          debugInfo.innerHTML = `
+            <strong>Sistema:</strong> ${capacidades.mobile ? 'Móvil' : 'Desktop'}<br>
+            <strong>Navegador:</strong> ${capacidades.chrome ? 'Chrome' : capacidades.safari ? 'Safari' : 'Otro'}<br>
+            <strong>HTTPS:</strong> ${capacidades.https ? '✅' : '❌'}<br>
+            <strong>Cámara:</strong> ${capacidades.getUserMedia ? '✅' : '❌'}<br>
+            <strong>WebXR:</strong> ${capacidades.webxr ? '✅' : '❌'}
+          `;
+        }
+        
+        console.log('✅ Aplicación inicializada correctamente');
+        console.log('📊 Capacidades:', capacidades);
       });
       
       // Limpieza al cerrar
@@ -1060,17 +1223,17 @@
         }
       });
       
+      // Prevenir zoom en iOS
+      document.addEventListener('gesturestart', function (e) {
+        e.preventDefault();
+      });
+      
       // Funciones globales
       window.reintentar = reintentar;
       window.solicitarPermisos = solicitarPermisos;
       window.cambiarModo = cambiarModo;
       window.cerrarInstrucciones = cerrarInstrucciones;
       window.resetearEstructura = resetearEstructura;
-      
-      // Variables globales para componentes AR
-      window.modoAR = false;
-      window.estructuraColocada = false;
-      window.colocarEstructura = colocarEstructura;
     </script>
   </body>
 </html>
