@@ -7,42 +7,9 @@
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
     <script>
       // ESCALA DE LA ESTRUCTURA - Cambiar aquí para escalar toda la estructura
-      const ESCALA = 0.1; // Factor de escala (0.1 = 10% del tamaño original)
-      
-      // Parámetros originales del MATLAB
-      const Lv1 = 3; // m
-      const Lh1 = 4; // m
-      
-      // Nodos originales (coordenadas del MATLAB)
-      const nodosOriginales = [
-        [0, 0],        // nodo 1
-        [0, Lv1],      // nodo 2  
-        [0, Lv1*2],    // nodo 3
-        [Lh1, Lv1*2], // nodo 4
-        [Lh1, Lv1],   // nodo 5
-        [Lh1, 0],     // nodo 6
-        [Lh1*2, Lv1], // nodo 7
-        [Lh1*2, 0]    // nodo 8
-      ];
-      
-      // Aplicar escala a las coordenadas
-      function escalarCoordenada(x, y) {
-        return [x * ESCALA, y * ESCALA];
-      }
-      
-      // Calcular dimensiones escaladas
-      const dimensionX = Lh1 * 2 * ESCALA;
-      const dimensionY = Lv1 * 2 * ESCALA;
-      const centroX = dimensionX / 2;
-      const centroY = dimensionY / 2;
-      
-      // Posición de la cámara (más lejos y desde arriba)
-      const camaraDistancia = Math.max(dimensionX, dimensionY) * 4;
-      const camaraAltura = dimensionY * 2;
+      const ESCALA = 1; // Factor de escala (0.1 = 10% del tamaño original)
       
       console.log(`Escala aplicada: ${ESCALA}`);
-      console.log(`Dimensiones escaladas: ${dimensionX.toFixed(2)} x ${dimensionY.toFixed(2)}`);
-      console.log(`Posición cámara: [${centroX.toFixed(2)}, ${camaraAltura.toFixed(2)}, ${camaraDistancia.toFixed(2)}]`);
     </script>
     <style>
       body {
@@ -72,30 +39,6 @@
         font-size: 11px;
         z-index: 1000;
       }
-      .scale-control {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: rgba(0,0,0,0.8);
-        color: white;
-        padding: 15px;
-        border-radius: 5px;
-        font-size: 12px;
-        z-index: 1000;
-      }
-      .scale-control input {
-        width: 80px;
-        margin-left: 10px;
-      }
-      .scale-control button {
-        margin-left: 10px;
-        padding: 5px 10px;
-        background: #4488ff;
-        color: white;
-        border: none;
-        border-radius: 3px;
-        cursor: pointer;
-      }
     </style>
   </head>
   <body>
@@ -103,16 +46,9 @@
       <h3>Estructura de Nodos y Elementos</h3>
       <p><strong>Nodos:</strong> 8 (esferas rojas)</p>
       <p><strong>Elementos:</strong> 8 (líneas azules)</p>
-      <p><strong>Escala actual:</strong> <span id="escala-display">0.1</span></p>
-      <p><strong>Dimensiones:</strong> <span id="dim-display">0.8m × 0.6m</span></p>
-      <p><strong>Lv1:</strong> <span id="lv1-display">0.3m</span> | <strong>Lh1:</strong> <span id="lh1-display">0.4m</span></p>
-    </div>
-    
-    <div class="scale-control">
-      <strong>Control de Escala:</strong><br>
-      Escala: <input type="number" id="escala-input" value="0.1" step="0.05" min="0.05" max="2">
-      <button onclick="actualizarEscala()">Aplicar</button><br>
-      <small>Ejemplos: 0.05, 0.1, 0.5, 1.0</small>
+      <p><strong>Escala:</strong> 0.1 (10% del tamaño original)</p>
+      <p><strong>Dimensiones escaladas:</strong> 0.8m × 0.6m</p>
+      <p><strong>Lv1:</strong> 0.3m | <strong>Lh1:</strong> 0.4m</p>
     </div>
     
     <div class="controls">
@@ -333,54 +269,8 @@
     </a-scene>
 
     <script>
-      function actualizarEscala() {
-        const nuevaEscala = parseFloat(document.getElementById('escala-input').value);
-        const estructura = document.getElementById('estructura-principal');
-        const camara = document.getElementById('camara-principal');
-        
-        // Aplicar nueva escala a la estructura
-        estructura.setAttribute('scale', `${nuevaEscala} ${nuevaEscala} ${nuevaEscala}`);
-        
-        // Calcular nuevas dimensiones
-        const Lv1 = 3, Lh1 = 4;
-        const dimensionX = Lh1 * 2 * nuevaEscala;
-        const dimensionY = Lv1 * 2 * nuevaEscala;
-        const centroX = dimensionX / 2;
-        const centroY = dimensionY / 2;
-        
-        // Ajustar posición de cámara basada en la escala
-        const distanciaOptima = Math.max(dimensionX, dimensionY) * 4;
-        const alturaOptima = dimensionY * 2;
-        
-        camara.setAttribute('position', `${centroX} ${alturaOptima} ${distanciaOptima}`);
-        camara.setAttribute('look-at', `${centroX} ${centroY} 0`);
-        
-        // Actualizar información en pantalla
-        document.getElementById('escala-display').textContent = nuevaEscala.toFixed(2);
-        document.getElementById('dim-display').textContent = `${dimensionX.toFixed(2)}m × ${dimensionY.toFixed(2)}m`;
-        document.getElementById('lv1-display').textContent = `${(Lv1 * nuevaEscala).toFixed(2)}m`;
-        document.getElementById('lh1-display').textContent = `${(Lh1 * nuevaEscala).toFixed(2)}m`;
-        
-        console.log(`Nueva escala: ${nuevaEscala}`);
-        console.log(`Posición cámara: [${centroX.toFixed(2)}, ${alturaOptima.toFixed(2)}, ${distanciaOptima.toFixed(2)}]`);
-      }
-      
-      // Aplicar escala inicial al cargar
-      window.addEventListener('load', function() {
-        actualizarEscala();
-      });
-      
-      // Presets de escala rápidos
-      document.addEventListener('keydown', function(event) {
-        const input = document.getElementById('escala-input');
-        switch(event.key) {
-          case '1': input.value = '0.05'; actualizarEscala(); break;
-          case '2': input.value = '0.1'; actualizarEscala(); break;
-          case '3': input.value = '0.2'; actualizarEscala(); break;
-          case '4': input.value = '0.5'; actualizarEscala(); break;
-          case '5': input.value = '1.0'; actualizarEscala(); break;
-        }
-      });
+      // Inicialización simple - la escala ya está aplicada en el HTML
+      console.log('Estructura cargada con escala 0.1');
     </script>
   </body>
 </html>
