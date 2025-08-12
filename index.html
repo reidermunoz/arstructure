@@ -7,9 +7,34 @@
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
     <script>
       // ESCALA DE LA ESTRUCTURA - Cambiar aquí para escalar toda la estructura
-      const ESCALA = 1; // Factor de escala (0.1 = 10% del tamaño original)
+      const ESCALA = 0.1; // Factor de escala (0.1 = 10% del tamaño original)
       
-      console.log(`Escala aplicada: ${ESCALA}`);
+      // Aplicar escala cuando cargue la página
+      window.addEventListener('DOMContentLoaded', function() {
+        const estructura = document.getElementById('estructura-principal');
+        const camara = document.getElementById('camara-principal');
+        
+        // Aplicar la escala a la estructura
+        estructura.setAttribute('scale', `${ESCALA} ${ESCALA} ${ESCALA}`);
+        
+        // Calcular posición de cámara basada en la escala
+        const Lv1 = 3, Lh1 = 4;
+        const dimensionX = Lh1 * 2 * ESCALA;
+        const dimensionY = Lv1 * 2 * ESCALA;
+        const centroX = dimensionX / 2;
+        const centroY = dimensionY / 2;
+        
+        // Ajustar cámara para vista desde arriba y lejos
+        const distanciaOptima = Math.max(dimensionX, dimensionY) * 8;
+        const alturaOptima = dimensionY * 3;
+        
+        camara.setAttribute('position', `${centroX} ${alturaOptima} ${distanciaOptima}`);
+        camara.setAttribute('look-at', `${centroX} ${centroY} 0`);
+        
+        console.log(`Escala aplicada: ${ESCALA}`);
+        console.log(`Dimensiones escaladas: ${dimensionX.toFixed(3)} x ${dimensionY.toFixed(3)}`);
+        console.log(`Posición cámara: [${centroX.toFixed(3)}, ${alturaOptima.toFixed(3)}, ${distanciaOptima.toFixed(3)}]`);
+      });
     </script>
     <style>
       body {
@@ -39,6 +64,33 @@
         font-size: 11px;
         z-index: 1000;
       }
+      .deformation-control {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 15px;
+        border-radius: 5px;
+        font-size: 12px;
+        z-index: 1000;
+        text-align: center;
+      }
+      .deformation-control button {
+        padding: 10px 20px;
+        background: #4488ff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+      }
+      .deformation-control button:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      }
     </style>
   </head>
   <body>
@@ -46,9 +98,14 @@
       <h3>Estructura de Nodos y Elementos</h3>
       <p><strong>Nodos:</strong> 8 (esferas rojas)</p>
       <p><strong>Elementos:</strong> 8 (líneas azules)</p>
-      <p><strong>Escala:</strong> 0.1 (10% del tamaño original)</p>
-      <p><strong>Dimensiones escaladas:</strong> 0.8m × 0.6m</p>
-      <p><strong>Lv1:</strong> 0.3m | <strong>Lh1:</strong> 0.4m</p>
+      <p><strong>Escala:</strong> 1.0 (tamaño original)</p>
+      <p><strong>Dimensiones:</strong> 8m × 6m</p>
+      <p><strong>Amplificación:</strong> 10,000x</p>
+    </div>
+    
+    <div class="deformation-control">
+      <button id="btn-deformacion" onclick="toggleDeformacion()">Mostrar Deformada</button>
+      <p><small>Los desplazamientos están amplificados para visualización</small></p>
     </div>
     
     <div class="controls">
@@ -64,7 +121,7 @@
       <a-light type="directional" position="2 4 2" color="#ffffff" intensity="0.8"></a-light>
       
       <!-- Entidad principal que contiene toda la estructura -->
-      <a-entity id="estructura-principal" scale="0.1 0.1 0.1">
+      <a-entity id="estructura-principal">
         
         <!-- Plano de referencia (suelo) -->
         <a-plane position="4 -1 0" 
@@ -89,7 +146,7 @@
 
         <!-- NODOS (Esferas) -->
         <!-- Nodo 1: [0,0] -->
-        <a-sphere position="0 0 0" 
+        <a-sphere id="nodo-1" position="0 0 0" 
                   radius="0.8" 
                   color="#ff4444" 
                   shadow="cast: true"
@@ -98,7 +155,7 @@
         </a-sphere>
         
         <!-- Nodo 2: [0,3] -->
-        <a-sphere position="0 3 0" 
+        <a-sphere id="nodo-2" position="0 3 0" 
                   radius="0.8" 
                   color="#ff4444" 
                   shadow="cast: true"
@@ -107,7 +164,7 @@
         </a-sphere>
         
         <!-- Nodo 3: [0,6] -->
-        <a-sphere position="0 6 0" 
+        <a-sphere id="nodo-3" position="0 6 0" 
                   radius="0.8" 
                   color="#ff4444" 
                   shadow="cast: true"
@@ -116,7 +173,7 @@
         </a-sphere>
         
         <!-- Nodo 4: [4,6] -->
-        <a-sphere position="4 6 0" 
+        <a-sphere id="nodo-4" position="4 6 0" 
                   radius="0.8" 
                   color="#ff4444" 
                   shadow="cast: true"
@@ -125,7 +182,7 @@
         </a-sphere>
         
         <!-- Nodo 5: [4,3] -->
-        <a-sphere position="4 3 0" 
+        <a-sphere id="nodo-5" position="4 3 0" 
                   radius="0.8" 
                   color="#ff4444" 
                   shadow="cast: true"
@@ -134,7 +191,7 @@
         </a-sphere>
         
         <!-- Nodo 6: [4,0] -->
-        <a-sphere position="4 0 0" 
+        <a-sphere id="nodo-6" position="4 0 0" 
                   radius="0.8" 
                   color="#ff4444" 
                   shadow="cast: true"
@@ -143,7 +200,7 @@
         </a-sphere>
         
         <!-- Nodo 7: [8,3] -->
-        <a-sphere position="8 3 0" 
+        <a-sphere id="nodo-7" position="8 3 0" 
                   radius="0.8" 
                   color="#ff4444" 
                   shadow="cast: true"
@@ -152,7 +209,7 @@
         </a-sphere>
         
         <!-- Nodo 8: [8,0] -->
-        <a-sphere position="8 0 0" 
+        <a-sphere id="nodo-8" position="8 0 0" 
                   radius="0.8" 
                   color="#ff4444" 
                   shadow="cast: true"
@@ -262,15 +319,13 @@
       
       <!-- Cámara posicionada dinámicamente -->
       <a-camera id="camara-principal" 
-                position="0.4 1.2 3.2" 
-                look-at="0.4 0.3 0"
                 wasd-controls="acceleration: 5">
       </a-camera>
     </a-scene>
 
     <script>
       // Inicialización simple - la escala ya está aplicada en el HTML
-      console.log('Estructura cargada con escala 0.1');
+      console.log('Estructura cargada con funcionalidad de deformación');
     </script>
   </body>
 </html>
