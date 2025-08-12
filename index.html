@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Structure Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe/1.4.0/aframe.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ar-js/2.2.2/aframe-ar.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        
+        #ui-overlay {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 999;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            max-width: 250px;
+        }
+        
+        .control-buttons {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 999;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .control-buttons button {
+            padding: 10px 15px;
+            background: rgba(0, 100, 255, 0.8);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .control-buttons button:hover {
+            background: rgba(0, 100, 255, 1);
+        }
+        
+        .control-buttons button:disabled {
+            background: rgba(100, 100, 100, 0.5);
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <!-- UI Overlay -->
+    <div id="ui-overlay">
+        <div>Status: <span id="status">Inicializando...</span></div>
+        <div>Estructura: <span id="structure-status">No generada</span></div>
+        <div>Desplazamientos: <span id="displacement-status">Original</span></div>
+        <div>Escala: <span id="scale-value">0.2</span></div>
+        <div style="margin-top: 10px; font-size: 10px;">
+            Toca la pantalla para generar la estructura
+        </div>
+    </div>
+
+    <!-- Control Buttons -->
+    <div class="control-buttons">
+        <button id="spawn-btn">Generar Estructura</button>
+        <button id="toggle-displacement-btn" disabled>Aplicar Desplazamientos</button>
+        <button id="destroy-btn" disabled>Destruir</button>
+        <button id="info-btn">Info</button>
+    </div>
+
+    <!-- A-Frame Scene -->
+    <a-scene 
+        embedded 
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+        vr-mode-ui="enabled: false"
+        renderer="logarithmicDepthBuffer: true;"
+        id="ar-scene">
+        
+        <!-- Assets -->
+        <a-assets>
+            <!-- Materials -->
+            <a-mixin id="node-material" 
+                     material="color: red; metalness: 0.3; roughness: 0.7"></a-mixin>
+            <a-mixin id="line-material" 
+                     material="color: white; shader: standard"></a-mixin>
+        </a-assets>
+
+        <!-- AR Camera -->
+        <a-camera id="ar-camera" 
+                  gps-camera 
+                  rotation-reader 
+                  look-controls-enabled="false"
+                  arjs-look-controls="smoothingFactor: 0.1">
+        </a-camera>
+
+        <!-- Structure Container -->
+        <a-entity id="structure-container"></a-entity>
+
+        <!-- Debug Sphere (initially hidden) -->
+        <a-sphere id="debug-sphere" 
+                  radius="0.05" 
+                  color="yellow" 
+                  visible="false"></a-sphere>
+    </a-scene>
+
+    <script>
+        // ========== CONFIGURACIÓN Y VARIABLES ==========
+        class ARStructureManager {
+            constructor() {
+                // Parámetros de estructura (equivalentes al Unity)
+                this.Lv1 = 3.0; // Altura de cada nivel [m]
+                this.Lh1 = 4.0; // Longitud horizontal [m]
+                this.structureScale = 0.2; // Escala general
+                
+                // Configuración visual
+                this.nodeColor = 'red';
+                this.lineColor = 'white';
+                this.nodeSize = 0.1;
+                this.lineWidth = 0.02;
+                
+                // Configuración de debug
+                this.enableDebugLogs = true;
+                this.defaultSpawnDistance = 1.0;
+                
+                // Configuración de desplazamientos
+                this.displacementScale = 1000.0;
+                this.showDisplacements = false;
+                
+                // Variables de estado
+                this.structureGenerated = false;
+                this.isDisplacementApplied = false;
+                this.currentStructure = null;
+                
+                // Matriz de conectividad (índices base 0)
+                this.connections = [
+                    [0, 1], [1, 2], [2, 3], [3, 4],
+                    [1, 4], [4, 5], [4, 6], [6, 7]
+                ];
+                
+                // Posiciones de nodos
+                this.nodePositions = [];
+                this.originalNodePositions = [];
+                this.currentNodes = [];
+                
+                // Datos de desplazamientos del código original
+                this.nodeDisplacements = [
+                    {x: 0, y: 0, z: 0}, // Nodo 1
+                    {x: -0.000214334467084222, y: -2.92585497916779e-05, z: 0.000299282917049326}, // Nodo 2
+                    {x: -4.51228548254704e-05, y: -5.91445463001043e-05, z: -0.00125414567113917}, // Nodo 3
+                    {x: -5.26077882706616e-05, y: -7.62472910434113e-05, z: 0.00121519336768121}, // Nodo 4
+                    {x: -0.000205459371218351, y: -4.61332875518377e-05, z: -0.000475039410395658}, // Nodo 5
+                    {x: 0, y: 0, z: 0}, // Nodo 6
+                    {x: -0.000209509318349148, y: -1.46081626564844e-05, z: 0.000595291931114151}, // Nodo 7
+                    {x: 0, y: 0, z: 0} // Nodo 8
+                ];
+                
+                this.init();
+            }
+            
+            init() {
+                this.initializeNodePositions();
+                this.setupEventListeners();
+                this.updateUI();
+                
+                if (this.enableDebugLogs) {
+                    console.log('ARStructureManager inicializado correctamente');
+                }
+            }
+            
+            // ========== INICIALIZACIÓN ==========
+            initializeNodePositions() {
+                // Definir posiciones base (equivalente al código Unity)
+                const basePositions = [
+                    {x: 0, y: 0, z: 0},                    // Nodo 1: (0,0)
+                    {x: 0, y: this.Lv1, z: 0},            // Nodo 2: (0,3)
+                    {x: 0, y: this.Lv1 * 2, z: 0},        // Nodo 3: (0,6)
+                    {x: this.Lh1, y: this.Lv1 * 2, z: 0}, // Nodo 4: (4,6)
+                    {x: this.Lh1, y: this.Lv1, z: 0},     // Nodo 5: (4,3)
+                    {x: this.Lh1, y: 0, z: 0},            // Nodo 6: (4,0)
+                    {x: this.Lh1 * 2, y: this.Lv1, z: 0}, // Nodo 7: (8,3)
+                    {x: this.Lh1 * 2, y: 0, z: 0}         // Nodo 8: (8,0)
+                ];
+                
+                // Aplicar escala a las posiciones
+                this.nodePositions = basePositions.map(pos => ({
+                    x: pos.x * this.structureScale,
+                    y: pos.y * this.structureScale,
+                    z: pos.z * this.structureScale
+                }));
+                
+                // Guardar posiciones originales
+                this.originalNodePositions = [...this.nodePositions];
+                
+                if (this.enableDebugLogs) {
+                    console.log('Posiciones de nodos inicializadas:', this.nodePositions);
+                }
+            }
+            
+            setupEventListeners() {
+                const scene = document.querySelector('#ar-scene');
+                const spawnBtn = document.getElementById('spawn-btn');
+                const toggleBtn = document.getElementById('toggle-displacement-btn');
+                const destroyBtn = document.getElementById('destroy-btn');
+                const infoBtn = document.getElementById('info-btn');
+                
+                // Touch/Click en la escena
+                scene.addEventListener('click', (event) => {
+                    this.handleSceneClick(event);
+                });
+                
+                // Botones de control
+                spawnBtn.addEventListener('click', () => {
+                    this.testGenerateStructure();
+                });
+                
+                toggleBtn.addEventListener('click', () => {
+                    this.toggleDisplacements();
+                });
+                
+                destroyBtn.addEventListener('click', () => {
+                    this.destroyCurrentStructure();
+                });
+                
+                infoBtn.addEventListener('click', () => {
+                    this.showDisplacementInfo();
+                });
+            }
+            
+            // ========== GENERACIÓN DE ESTRUCTURA ==========
+            handleSceneClick(event) {
+                if (this.enableDebugLogs) {
+                    console.log('Click detectado en la escena');
+                }
+                
+                // Obtener posición de la cámara
+                const camera = document.querySelector('#ar-camera');
+                const cameraPos = camera.getAttribute('position');
+                const cameraRotation = camera.getAttribute('rotation');
+                
+                // Calcular posición spawn (adelante de la cámara)
+                const distance = this.defaultSpawnDistance;
+                const radY = (cameraRotation.y * Math.PI) / 180;
+                
+                const spawnPosition = {
+                    x: cameraPos.x + Math.sin(radY) * distance,
+                    y: cameraPos.y,
+                    z: cameraPos.z - Math.cos(radY) * distance
+                };
+                
+                this.generateStructureAt(spawnPosition);
+            }
+            
+            testGenerateStructure() {
+                const camera = document.querySelector('#ar-camera');
+                const cameraPos = camera.getAttribute('position') || {x: 0, y: 0, z: 0};
+                const cameraRotation = camera.getAttribute('rotation') || {x: 0, y: 0, z: 0};
+                
+                const distance = this.defaultSpawnDistance;
+                const radY = (cameraRotation.y * Math.PI) / 180;
+                
+                const spawnPosition = {
+                    x: cameraPos.x + Math.sin(radY) * distance,
+                    y: cameraPos.y,
+                    z: cameraPos.z - Math.cos(radY) * distance
+                };
+                
+                this.generateStructureAt(spawnPosition);
+            }
+            
+            generateStructureAt(worldPosition) {
+                if (this.structureGenerated) {
+                    if (this.enableDebugLogs) console.log('Destruyendo estructura anterior...');
+                    this.destroyCurrentStructure();
+                }
+                
+                if (this.enableDebugLogs) {
+                    console.log('=== GENERANDO ESTRUCTURA EN:', worldPosition, '===');
+                }
+                
+                // Crear entidad contenedora
+                const structureContainer = document.querySelector('#structure-container');
+                const structureEntity = document.createElement('a-entity');
+                structureEntity.setAttribute('id', 'ar-structure');
+                structureEntity.setAttribute('position', worldPosition);
+                structureContainer.appendChild(structureEntity);
+                
+                this.currentStructure = structureEntity;
+                this.currentNodes = [];
+                
+                // Generar nodos
+                for (let i = 0; i < this.nodePositions.length; i++) {
+                    const node = this.createNode(i, this.nodePositions[i]);
+                    structureEntity.appendChild(node);
+                    this.currentNodes.push(node);
+                }
+                
+                // Generar líneas
+                for (let i = 0; i < this.connections.length; i++) {
+                    const [nodeA, nodeB] = this.connections[i];
+                    const line = this.createLine(
+                        this.nodePositions[nodeA], 
+                        this.nodePositions[nodeB], 
+                        i + 1
+                    );
+                    structureEntity.appendChild(line);
+                }
+                
+                this.structureGenerated = true;
+                this.updateUI();
+                
+                if (this.enableDebugLogs) {
+                    console.log('¡¡¡ ESTRUCTURA GENERADA EXITOSAMENTE !!!');
+                }
+            }
+            
+            createNode(nodeIndex, localPosition) {
+                const node = document.createElement('a-sphere');
+                const actualSize = Math.max(this.nodeSize * this.structureScale, 0.05);
+                
+                node.setAttribute('id', `node-${nodeIndex + 1}`);
+                node.setAttribute('radius', actualSize);
+                node.setAttribute('position', localPosition);
+                node.setAttribute('material', `color: ${this.nodeColor}; metalness: 0.3; roughness: 0.7`);
+                node.setAttribute('class', 'structure-node');
+                
+                if (this.enableDebugLogs) {
+                    console.log(`Nodo ${nodeIndex + 1} creado en:`, localPosition, `escala: ${actualSize}`);
+                }
+                
+                return node;
+            }
+            
+            createLine(startPos, endPos, lineNumber) {
+                // Calcular posición central y dirección
+                const centerX = (startPos.x + endPos.x) / 2;
+                const centerY = (startPos.y + endPos.y) / 2;
+                const centerZ = (startPos.z + endPos.z) / 2;
+                
+                const dx = endPos.x - startPos.x;
+                const dy = endPos.y - startPos.y;
+                const dz = endPos.z - startPos.z;
+                
+                const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
+                
+                // Calcular rotación
+                const rotationY = Math.atan2(dx, dz) * (180 / Math.PI);
+                const rotationZ = -Math.atan2(dy, Math.sqrt(dx * dx + dz * dz)) * (180 / Math.PI);
+                
+                // Crear cilindro como línea
+                const line = document.createElement('a-cylinder');
+                const actualWidth = Math.max(this.lineWidth * this.structureScale, 0.01);
+                
+                line.setAttribute('id', `line-${lineNumber}`);
+                line.setAttribute('radius', actualWidth);
+                line.setAttribute('height', length);
+                line.setAttribute('position', {x: centerX, y: centerY, z: centerZ});
+                line.setAttribute('rotation', {x: 0, y: rotationY, z: rotationZ});
+                line.setAttribute('material', `color: ${this.lineColor}`);
+                line.setAttribute('class', 'structure-line');
+                
+                if (this.enableDebugLogs) {
+                    console.log(`Línea ${lineNumber} creada: longitud ${length.toFixed(3)}`);
+                }
+                
+                return line;
+            }
+            
+            // ========== GESTIÓN DE DESPLAZAMIENTOS ==========
+            toggleDisplacements() {
+                if (!this.structureGenerated || !this.currentStructure) {
+                    console.warn('No hay estructura generada para aplicar desplazamientos.');
+                    return;
+                }
+                
+                this.showDisplacements = !this.showDisplacements;
+                
+                if (this.showDisplacements) {
+                    this.applyDisplacements();
+                } else {
+                    this.resetToOriginalPositions();
+                }
+                
+                this.updateUI();
+            }
+            
+            applyDisplacements() {
+                if (!this.structureGenerated || !this.currentNodes) {
+                    console.warn('No hay estructura para aplicar desplazamientos.');
+                    return;
+                }
+                
+                if (this.enableDebugLogs) console.log('Aplicando desplazamientos...');
+                
+                // Aplicar desplazamientos a cada nodo
+                for (let i = 0; i < this.nodeDisplacements.length; i++) {
+                    if (this.currentNodes[i]) {
+                        const displacement = {
+                            x: this.nodeDisplacements[i].x * this.displacementScale * this.structureScale,
+                            y: this.nodeDisplacements[i].y * this.displacementScale * this.structureScale,
+                            z: 0
+                        };
+                        
+                        const newPosition = {
+                            x: this.originalNodePositions[i].x + displacement.x,
+                            y: this.originalNodePositions[i].y + displacement.y,
+                            z: this.originalNodePositions[i].z + displacement.z
+                        };
+                        
+                        this.currentNodes[i].setAttribute('position', newPosition);
+                        
+                        if (this.enableDebugLogs) {
+                            console.log(`Nodo ${i + 1}: Desplazamiento aplicado`, displacement);
+                        }
+                    }
+                }
+                
+                this.regenerateLines();
+                this.isDisplacementApplied = true;
+                
+                if (this.enableDebugLogs) console.log('Desplazamientos aplicados correctamente.');
+            }
+            
+            resetToOriginalPositions() {
+                if (!this.structureGenerated || !this.currentNodes) {
+                    return;
+                }
+                
+                if (this.enableDebugLogs) console.log('Restaurando posiciones originales...');
+                
+                for (let i = 0; i < this.originalNodePositions.length; i++) {
+                    if (this.currentNodes[i]) {
+                        this.currentNodes[i].setAttribute('position', this.originalNodePositions[i]);
+                    }
+                }
+                
+                this.regenerateLines();
+                this.isDisplacementApplied = false;
+                
+                if (this.enableDebugLogs) console.log('Estructura restaurada a posiciones originales.');
+            }
+            
+            regenerateLines() {
+                if (!this.currentStructure) return;
+                
+                // Eliminar líneas existentes
+                const existingLines = this.currentStructure.querySelectorAll('.structure-line');
+                existingLines.forEach(line => line.remove());
+                
+                // Regenerar líneas con posiciones actuales
+                for (let i = 0; i < this.connections.length; i++) {
+                    const [nodeA, nodeB] = this.connections[i];
+                    const startPos = this.currentNodes[nodeA].getAttribute('position');
+                    const endPos = this.currentNodes[nodeB].getAttribute('position');
+                    
+                    const line = this.createLine(startPos, endPos, i + 1);
+                    this.currentStructure.appendChild(line);
+                }
+            }
+            
+            // ========== FUNCIONES DE UTILIDAD ==========
+            destroyCurrentStructure() {
+                const structureContainer = document.querySelector('#structure-container');
+                const existingStructure = document.querySelector('#ar-structure');
+                
+                if (existingStructure) {
+                    structureContainer.removeChild(existingStructure);
+                    this.structureGenerated = false;
+                    this.isDisplacementApplied = false;
+                    this.currentStructure = null;
+                    this.currentNodes = [];
+                    this.showDisplacements = false;
+                    this.updateUI();
+                    
+                    if (this.enableDebugLogs) console.log('Estructura destruida.');
+                }
+            }
+            
+            showDisplacementInfo() {
+                console.log('=== INFORMACIÓN DE DESPLAZAMIENTOS ===');
+                console.log('Factor de escala actual:', this.displacementScale);
+                console.log('Desplazamientos aplicados:', this.isDisplacementApplied);
+                
+                for (let i = 0; i < this.nodeDisplacements.length; i++) {
+                    const disp = this.nodeDisplacements[i];
+                    console.log(`Nodo ${i + 1}: X=${disp.x.toFixed(6)}m, Y=${disp.y.toFixed(6)}m, Rot=${disp.z.toFixed(6)}rad`);
+                }
+                
+                // También mostrar en alert para el usuario
+                alert(`Información de Desplazamientos:\n\nEscala: ${this.displacementScale}\nAplicados: ${this.isDisplacementApplied ? 'Sí' : 'No'}\n\nVer consola para detalles completos.`);
+            }
+            
+            updateUI() {
+                document.getElementById('status').textContent = 'AR Activo';
+                document.getElementById('structure-status').textContent = 
+                    this.structureGenerated ? 'Generada' : 'No generada';
+                document.getElementById('displacement-status').textContent = 
+                    this.isDisplacementApplied ? 'Aplicados' : 'Original';
+                document.getElementById('scale-value').textContent = this.structureScale;
+                
+                // Actualizar botones
+                const toggleBtn = document.getElementById('toggle-displacement-btn');
+                const destroyBtn = document.getElementById('destroy-btn');
+                
+                toggleBtn.disabled = !this.structureGenerated;
+                destroyBtn.disabled = !this.structureGenerated;
+                
+                if (this.structureGenerated) {
+                    toggleBtn.textContent = this.isDisplacementApplied ? 
+                        'Reset a Original' : 'Aplicar Desplazamientos';
+                }
+            }
+        }
+        
+        // ========== INICIALIZACIÓN ==========
+        document.addEventListener('DOMContentLoaded', () => {
+            // Esperar a que A-Frame esté listo
+            const scene = document.querySelector('#ar-scene');
+            
+            if (scene.hasLoaded) {
+                new ARStructureManager();
+            } else {
+                scene.addEventListener('loaded', () => {
+                    new ARStructureManager();
+                });
+            }
+        });
+    </script>
+</body>
+</html>
