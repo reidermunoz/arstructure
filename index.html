@@ -15,11 +15,14 @@
         font-family: Arial, sans-serif;
         overflow: hidden;
         background: #000;
-        touch-action: manipulation;
+        touch-action: none;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
       }
       
       .info {
-        position: absolute;
+        position: fixed;
         top: 10px;
         left: 10px;
         background: rgba(0,0,0,0.85);
@@ -27,7 +30,7 @@
         padding: 12px;
         border-radius: 8px;
         font-size: 12px;
-        z-index: 1000;
+        z-index: 2000;
         max-width: 280px;
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.2);
@@ -36,7 +39,7 @@
       }
       
       .controls {
-        position: absolute;
+        position: fixed;
         bottom: 80px;
         left: 10px;
         background: rgba(0,0,0,0.85);
@@ -44,14 +47,14 @@
         padding: 10px;
         border-radius: 8px;
         font-size: 11px;
-        z-index: 1000;
+        z-index: 2000;
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.2);
         pointer-events: none;
       }
       
       .deformation-control {
-        position: absolute;
+        position: fixed;
         top: 10px;
         right: 10px;
         background: rgba(0,0,0,0.85);
@@ -59,10 +62,11 @@
         padding: 12px;
         border-radius: 8px;
         font-size: 12px;
-        z-index: 1000;
+        z-index: 2000;
         text-align: center;
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.2);
+        pointer-events: auto;
       }
       
       .deformation-control button {
@@ -77,23 +81,11 @@
         transition: all 0.3s ease;
         touch-action: manipulation;
         min-width: 140px;
-      }
-      
-      .deformation-control button:hover:not(:disabled),
-      .deformation-control button:active:not(:disabled) {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(68,136,255,0.4);
-      }
-      
-      .deformation-control button:disabled {
-        background: #666;
-        cursor: not-allowed;
-        transform: none;
-        opacity: 0.6;
+        pointer-events: auto;
       }
       
       .mode-selector {
-        position: absolute;
+        position: fixed;
         bottom: 10px;
         right: 10px;
         background: rgba(0,0,0,0.85);
@@ -101,10 +93,11 @@
         padding: 12px;
         border-radius: 8px;
         font-size: 12px;
-        z-index: 1000;
+        z-index: 2000;
         text-align: center;
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.2);
+        pointer-events: auto;
       }
       
       .mode-selector button {
@@ -120,6 +113,7 @@
         touch-action: manipulation;
         transition: all 0.3s ease;
         min-width: 100px;
+        pointer-events: auto;
       }
       
       .mode-selector button.active {
@@ -128,14 +122,8 @@
         transform: scale(1.05);
       }
       
-      .mode-selector button:disabled {
-        background: #666;
-        color: #ccc;
-        cursor: not-allowed;
-      }
-      
       .ar-instructions {
-        position: absolute;
+        position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
@@ -143,12 +131,13 @@
         color: white;
         padding: 25px;
         border-radius: 12px;
-        z-index: 1500;
+        z-index: 3000;
         text-align: center;
         max-width: 85%;
         display: none;
         border: 2px solid #00aaff;
         box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        pointer-events: auto;
       }
       
       .ar-instructions.show {
@@ -161,12 +150,6 @@
         to { opacity: 1; transform: translate(-50%, -50%); }
       }
       
-      .ar-instructions h3 {
-        color: #00ddff;
-        margin-top: 0;
-        font-size: 18px;
-      }
-      
       .ar-instructions button {
         padding: 12px 24px;
         background: #00aaff;
@@ -175,30 +158,15 @@
         border-radius: 6px;
         font-weight: bold;
         cursor: pointer;
-        margin-top: 15px;
+        margin: 8px;
         font-size: 14px;
         transition: all 0.3s ease;
-      }
-      
-      .ar-instructions button:hover {
-        background: #0088cc;
-        transform: translateY(-2px);
-      }
-      
-      .debug-info {
-        margin-top: 8px;
-        font-size: 10px;
-        color: #bbb;
-        max-height: 140px;
-        overflow-y: auto;
-        background: rgba(0,0,0,0.3);
-        padding: 8px;
-        border-radius: 4px;
-        border-left: 3px solid #4488ff;
+        pointer-events: auto;
+        touch-action: manipulation;
       }
       
       .loading {
-        position: absolute;
+        position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
@@ -206,7 +174,7 @@
         color: white;
         padding: 30px;
         border-radius: 12px;
-        z-index: 2000;
+        z-index: 3000;
         text-align: center;
         display: none;
         border: 1px solid #666;
@@ -233,7 +201,7 @@
       }
       
       .error-message {
-        position: absolute;
+        position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
@@ -241,12 +209,13 @@
         color: white;
         padding: 25px;
         border-radius: 12px;
-        z-index: 2001;
+        z-index: 3000;
         text-align: center;
         display: none;
         max-width: 85%;
         border: 2px solid #ff4444;
         box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        pointer-events: auto;
       }
       
       .error-message.show {
@@ -263,15 +232,12 @@
         cursor: pointer;
         margin: 8px;
         transition: all 0.3s ease;
-      }
-      
-      .error-message button:hover {
-        background: #ff4444;
-        transform: translateY(-2px);
+        pointer-events: auto;
+        touch-action: manipulation;
       }
       
       .permission-request {
-        position: absolute;
+        position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
@@ -279,11 +245,12 @@
         color: white;
         padding: 25px;
         border-radius: 12px;
-        z-index: 2002;
+        z-index: 3000;
         text-align: center;
         display: none;
         border: 2px solid #00aaff;
         box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        pointer-events: auto;
       }
       
       .permission-request.show {
@@ -301,15 +268,12 @@
         margin: 8px;
         font-size: 14px;
         transition: all 0.3s ease;
-      }
-      
-      .permission-request button:hover {
-        background: #f0f0f0;
-        transform: translateY(-2px);
+        pointer-events: auto;
+        touch-action: manipulation;
       }
       
       .reset-button {
-        position: absolute;
+        position: fixed;
         bottom: 10px;
         left: 50%;
         transform: translateX(-50%);
@@ -320,39 +284,87 @@
         border-radius: 8px;
         font-weight: bold;
         cursor: pointer;
-        z-index: 1000;
+        z-index: 2000;
         display: none;
         font-size: 14px;
         transition: all 0.3s ease;
         box-shadow: 0 4px 12px rgba(255,100,0,0.3);
+        pointer-events: auto;
+        touch-action: manipulation;
       }
       
       .reset-button.show {
         display: block;
       }
       
-      .reset-button:hover {
-        background: rgba(255,80,0,0.95);
-        transform: translateX(-50%) translateY(-2px);
+      /* OVERLAY PRINCIPAL PARA CAPTURAR TOQUES - SOLUCION PRINCIPAL */
+      .ar-touch-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        z-index: 1500 !important;
+        background: transparent !important;
+        cursor: crosshair !important;
+        display: none;
+        touch-action: none !important;
+        pointer-events: auto !important;
       }
       
-      .ar-mode .info,
-      .ar-mode .controls {
-        opacity: 0.9;
-        font-size: 10px;
+      .ar-touch-overlay.active {
+        display: block !important;
       }
       
-      .ar-cursor {
+      /* Indicador visual de toque */
+      .touch-feedback {
+        position: fixed;
         width: 60px;
         height: 60px;
+        border: 4px solid #00ff00;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(0,255,0,0.3) 0%, transparent 70%);
+        pointer-events: none;
+        z-index: 2500;
+        display: none;
+        transform: translate(-50%, -50%);
+        animation: touchPulse 0.6s ease-out;
+      }
+      
+      .touch-feedback.show {
+        display: block;
+      }
+      
+      @keyframes touchPulse {
+        0% { 
+          opacity: 1; 
+          transform: translate(-50%, -50%) scale(0.5); 
+          border-color: #00ff00;
+        }
+        50% { 
+          opacity: 0.8; 
+          transform: translate(-50%, -50%) scale(1.2); 
+          border-color: #44ff44;
+        }
+        100% { 
+          opacity: 0; 
+          transform: translate(-50%, -50%) scale(2); 
+          border-color: #88ff88;
+        }
+      }
+      
+      /* Cursor AR */
+      .ar-cursor {
+        width: 50px;
+        height: 50px;
         border: 3px solid #00ff00;
         border-radius: 50%;
-        position: absolute;
+        position: fixed;
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
         pointer-events: none;
-        z-index: 1001;
+        z-index: 2000;
         display: none;
         background: rgba(0,255,0,0.1);
         animation: pulse 2s infinite;
@@ -367,52 +379,32 @@
         50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
       }
       
+      /* Debug panel */
       .debug-panel {
-        position: absolute;
+        position: fixed;
         top: 200px;
         left: 10px;
-        background: rgba(0,0,0,0.9);
+        background: rgba(0,0,0,0.95);
         color: #00ff00;
         padding: 10px;
         border-radius: 5px;
-        font-size: 10px;
-        z-index: 1200;
-        max-width: 280px;
+        font-size: 9px;
+        z-index: 2500;
+        max-width: 300px;
         font-family: monospace;
         border: 1px solid #00ff00;
         display: none;
-        max-height: 200px;
+        max-height: 250px;
         overflow-y: auto;
+        pointer-events: auto;
       }
       
       .debug-panel.show {
         display: block;
       }
       
-      .debug-panel .log-entry {
-        margin: 2px 0;
-        padding: 2px;
-        border-left: 2px solid #00ff00;
-        padding-left: 5px;
-      }
-      
-      .debug-panel .log-error {
-        color: #ff4444;
-        border-left-color: #ff4444;
-      }
-      
-      .debug-panel .log-success {
-        color: #44ff44;
-        border-left-color: #44ff44;
-      }
-      
-      .debug-panel .log-info {
-        color: #4444ff;
-        border-left-color: #4444ff;
-      }
-      
       .debug-toggle {
-        position: absolute;
+        position: fixed;
         top: 120px;
         right: 10px;
         background: rgba(0,255,0,0.8);
@@ -421,58 +413,30 @@
         border: none;
         border-radius: 50%;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 12px;
         font-weight: bold;
-        z-index: 1300;
-        width: 50px;
-        height: 50px;
+        z-index: 2500;
+        width: 45px;
+        height: 45px;
+        pointer-events: auto;
+        touch-action: manipulation;
       }
-
-      /* Zona de toque AR - CLAVE PARA SOLUCIONAR EL PROBLEMA */
-      .ar-touch-zone {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 100;
-        background: transparent;
-        cursor: crosshair;
-        touch-action: none;
-        user-select: none;
-        -webkit-user-select: none;
-        -webkit-touch-callout: none;
+      
+      .debug-entry {
+        margin: 2px 0;
+        padding: 2px 0;
+        border-left: 2px solid #00ff00;
+        padding-left: 5px;
+        font-size: 8px;
       }
-
-      .ar-touch-zone.active {
-        display: block;
-      }
-
-      .ar-touch-zone.inactive {
-        display: none;
-      }
-
-      /* Status visual del toque */
-      .touch-indicator {
-        position: fixed;
-        width: 30px;
-        height: 30px;
-        border: 3px solid #00ff00;
-        border-radius: 50%;
-        background: rgba(0,255,0,0.2);
-        pointer-events: none;
-        z-index: 1002;
-        display: none;
-        animation: touchFeedback 0.3s ease-out;
-      }
-
-      @keyframes touchFeedback {
-        0% { transform: scale(0.5); opacity: 1; }
-        100% { transform: scale(2); opacity: 0; }
-      }
-
+      
+      .debug-error { color: #ff4444; border-left-color: #ff4444; }
+      .debug-success { color: #44ff44; border-left-color: #44ff44; }
+      .debug-info { color: #4444ff; border-left-color: #4444ff; }
+      .debug-warning { color: #ffaa00; border-left-color: #ffaa00; }
+      
       /* Video de cámara AR */
-      .ar-camera-feed {
+      .ar-camera-video {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
@@ -482,9 +446,22 @@
         z-index: -1 !important;
         background: #000;
       }
+
+      /* Estilos para elementos deshabilitados */
+      button:disabled {
+        background: #666 !important;
+        cursor: not-allowed !important;
+        opacity: 0.6;
+      }
     </style>
   </head>
   <body>
+    
+    <!-- OVERLAY PRINCIPAL PARA CAPTURAR TOQUES -->
+    <div id="ar-touch-overlay" class="ar-touch-overlay"></div>
+    
+    <!-- Feedback visual de toque -->
+    <div id="touch-feedback" class="touch-feedback"></div>
     
     <div id="loading" class="loading">
       <h3>🚀 Iniciando AR</h3>
@@ -526,17 +503,11 @@
     
     <div id="debug-panel" class="debug-panel">
       <div style="border-bottom: 1px solid #00ff00; margin-bottom: 5px; padding-bottom: 3px;">
-        <strong>🐛 DEBUG PANEL</strong>
-        <button onclick="clearDebugLog()" style="float: right; background: #ff4444; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 9px;">Limpiar</button>
+        <strong>🐛 DEBUG AR</strong>
+        <button onclick="clearDebugLog()" style="float: right; background: #ff4444; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 8px;">Clear</button>
       </div>
       <div id="debug-log"></div>
     </div>
-    
-    <!-- ZONA DE TOQUE AR - ELEMENTO CLAVE -->
-    <div id="ar-touch-zone" class="ar-touch-zone inactive"></div>
-    
-    <!-- Indicador visual de toque -->
-    <div id="touch-indicator" class="touch-indicator"></div>
     
     <div id="ar-cursor" class="ar-cursor"></div>
     
@@ -546,21 +517,21 @@
       <p><strong>Elementos:</strong> 8 (líneas azules)</p>
       <p id="mode-info"><strong>Modo:</strong> 3D Normal</p>
       <p id="ar-status"><strong>Estado:</strong> Esperando...</p>
-      <div id="debug-info" class="debug-info">
+      <div id="debug-info" style="margin-top: 8px; font-size: 9px; color: #bbb;">
         <strong>Sistema:</strong> Listo para usar
       </div>
     </div>
     
     <div class="deformation-control">
-      <button id="btn-deformacion" disabled>Mostrar Deformada</button>
+      <button id="btn-deformacion" disabled onclick="toggleDeformacion()">Mostrar Deformada</button>
       <p><small>Desplazamientos amplificados 5000x</small></p>
       <p><small id="deform-status">Primero coloca la estructura</small></p>
     </div>
     
     <div class="mode-selector">
       <p><strong>Modo de Vista:</strong></p>
-      <button id="btn-3d" class="active">🖥️ 3D Normal</button>
-      <button id="btn-ar">📱 AR Superficie</button>
+      <button id="btn-3d" class="active" onclick="cambiarModo(false)">🖥️ 3D Normal</button>
+      <button id="btn-ar" onclick="cambiarModo(true)">📱 AR Superficie</button>
     </div>
     
     <div class="controls">
@@ -577,10 +548,11 @@
       id="main-scene"
       embedded 
       background="color: #f0f0f0"
-      cursor="rayOrigin: mouse"
       loading-screen="enabled: false"
       vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: false">
+      device-orientation-permission-ui="enabled: false"
+      cursor="rayOrigin: mouse; downEvents: ; upEvents: ; clickEvents: ;"
+      raycaster="far: 100; objects: .no-interaction">
       
       <!-- Iluminación -->
       <a-light type="ambient" color="#404040"></a-light>
@@ -678,68 +650,20 @@
     </a-scene>
 
     <script>
-      // CONFIGURACIÓN
+      // CONFIGURACIÓN GLOBAL
       const ESCALA = 0.3;
-      const ESCALA_AR = 0.1;
+      const ESCALA_AR = 0.15;
       
-      // Sistema de debug visual
-      let debugLog = [];
+      // Estado de la aplicación
+      let modoAR = false;
+      let estructuraDeformada = false;
+      let estructuraColocada = false;
+      let arInitialized = false;
+      let cameraStream = null;
+      let estructuraAR = null;
+      let touchOverlay = null;
       let debugVisible = false;
-      
-      function logDebug(mensaje, tipo = 'info') {
-        const timestamp = new Date().toLocaleTimeString();
-        const entry = `[${timestamp}] ${mensaje}`;
-        debugLog.push({ entry, tipo });
-        
-        // Limitar a 50 entradas
-        if (debugLog.length > 50) {
-          debugLog.shift();
-        }
-        
-        // También log normal para consola
-        console.log(entry);
-        
-        // Actualizar panel visual si está visible
-        if (debugVisible) {
-          actualizarDebugPanel();
-        }
-      }
-      
-      function actualizarDebugPanel() {
-        const debugLogDiv = document.getElementById('debug-log');
-        if (!debugLogDiv) return;
-        
-        debugLogDiv.innerHTML = debugLog.map(item => 
-          `<div class="log-entry log-${item.tipo}">${item.entry}</div>`
-        ).join('');
-        
-        // Scroll al final
-        debugLogDiv.scrollTop = debugLogDiv.scrollHeight;
-      }
-      
-      function toggleDebug() {
-        debugVisible = !debugVisible;
-        const panel = document.getElementById('debug-panel');
-        const button = document.getElementById('debug-toggle');
-        
-        if (debugVisible) {
-          panel.classList.add('show');
-          button.textContent = '❌';
-          button.style.background = 'rgba(255,0,0,0.8)';
-          actualizarDebugPanel();
-          logDebug('Debug panel activado', 'success');
-        } else {
-          panel.classList.remove('show');
-          button.textContent = '🐛';
-          button.style.background = 'rgba(0,255,0,0.8)';
-        }
-      }
-      
-      function clearDebugLog() {
-        debugLog = [];
-        actualizarDebugPanel();
-        logDebug('Log limpiado', 'info');
-      }
+      let debugLog = [];
       
       // Datos de desplazamientos
       const desplazamientos = [
@@ -765,121 +689,113 @@
         [0, 0], [0, 3], [0, 6], [4, 6], [4, 3], [4, 0], [8, 3], [8, 0]
       ];
       
-      let posicionesActuales = [];
+      // Sistema de debug
+      function logDebug(mensaje, tipo = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        const entry = { mensaje: `[${timestamp}] ${mensaje}`, tipo };
+        debugLog.push(entry);
+        
+        if (debugLog.length > 100) debugLog.shift();
+        
+        console.log(`[${tipo.toUpperCase()}] ${mensaje}`);
+        
+        if (debugVisible) actualizarDebugPanel();
+      }
       
-      // Estado de la aplicación
-      let modoAR = false;
-      let estructuraDeformada = false;
-      let estructuraColocada = false;
-      let arInitialized = false;
-      let cameraStream = null;
-      let estructuraAR = null;
-      let arTouchZone = null;
+      function actualizarDebugPanel() {
+        const panel = document.getElementById('debug-log');
+        if (!panel) return;
+        
+        panel.innerHTML = debugLog.map(entry => 
+          `<div class="debug-entry debug-${entry.tipo}">${entry.mensaje}</div>`
+        ).join('');
+        panel.scrollTop = panel.scrollHeight;
+      }
       
-      // Función para verificar HTTPS
-      function verificarHTTPS() {
-        if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
-          mostrarError('HTTPS requerido', 'AR requiere HTTPS o localhost para acceder a la cámara');
+      function toggleDebug() {
+        debugVisible = !debugVisible;
+        const panel = document.getElementById('debug-panel');
+        const button = document.getElementById('debug-toggle');
+        
+        if (debugVisible) {
+          panel.classList.add('show');
+          button.textContent = '❌';
+          button.style.background = 'rgba(255,0,0,0.8)';
+          actualizarDebugPanel();
+        } else {
+          panel.classList.remove('show');
+          button.textContent = '🐛';
+          button.style.background = 'rgba(0,255,0,0.8)';
+        }
+      }
+      
+      function clearDebugLog() {
+        debugLog = [];
+        actualizarDebugPanel();
+        logDebug('Debug log limpiado', 'info');
+      }
+      
+      // FUNCIÓN PRINCIPAL PARA CONFIGURAR DETECCIÓN DE TOQUES
+      function configurarDeteccionToques() {
+        touchOverlay = document.getElementById('ar-touch-overlay');
+        
+        if (!touchOverlay) {
+          logDebug('ERROR: No se encontró el overlay de toque', 'error');
           return false;
         }
-        return true;
-      }
-      
-      // Función para detectar capacidades del dispositivo
-      function detectarCapacidades() {
-        const capacidades = {
-          getUserMedia: !!(navigator.mediaDevices?.getUserMedia),
-          webxr: !!(navigator.xr),
-          https: window.isSecureContext,
-          mobile: /Mobi|Android/i.test(navigator.userAgent),
-          iOS: /iPad|iPhone|iPod/.test(navigator.userAgent),
-          chrome: /Chrome/.test(navigator.userAgent),
-          safari: /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
-        };
         
-        console.log('📊 Capacidades del dispositivo:', capacidades);
-        return capacidades;
-      }
-      
-      // Función para actualizar texto de carga
-      function actualizarCarga(mensaje) {
-        const loadingText = document.getElementById('loading-text');
-        if (loadingText) {
-          loadingText.textContent = mensaje;
-        }
-        console.log('⏳', mensaje);
-      }
-      
-      // Función para mostrar indicador visual de toque
-      function mostrarIndicadorToque(x, y) {
-        const indicator = document.getElementById('touch-indicator');
-        if (indicator) {
-          indicator.style.left = (x - 15) + 'px';
-          indicator.style.top = (y - 15) + 'px';
-          indicator.style.display = 'block';
-          
-          // Ocultar después de la animación
-          setTimeout(() => {
-            indicator.style.display = 'none';
-          }, 300);
-        }
-      }
-      
-      // NUEVA FUNCIÓN MEJORADA PARA MANEJAR TOQUES EN AR
-      function configurarZonaToque() {
-        arTouchZone = document.getElementById('ar-touch-zone');
+        // Limpiar listeners existentes
+        const nuevoOverlay = touchOverlay.cloneNode(true);
+        touchOverlay.parentNode.replaceChild(nuevoOverlay, touchOverlay);
+        touchOverlay = nuevoOverlay;
         
-        if (!arTouchZone) {
-          logDebug('❌ No se encontró la zona de toque AR', 'error');
-          return;
-        }
+        logDebug('Configurando detección de toques...', 'info');
         
-        // Limpiar event listeners previos
-        arTouchZone.replaceWith(arTouchZone.cloneNode(true));
-        arTouchZone = document.getElementById('ar-touch-zone');
+        // Configurar múltiples tipos de eventos
+        const eventos = [
+          'touchstart',
+          'touchend', 
+          'mousedown',
+          'mouseup',
+          'click',
+          'pointerdown',
+          'pointerup'
+        ];
         
-        // Configurar múltiples event listeners para mayor compatibilidad
-        const eventTypes = ['touchstart', 'touchend', 'click', 'pointerdown'];
-        
-        eventTypes.forEach(eventType => {
-          arTouchZone.addEventListener(eventType, function(event) {
-            logDebug(`🎯 Evento ${eventType} capturado`, 'info');
-            
-            // Solo procesar touchstart y click
-            if (eventType === 'touchstart' || eventType === 'click') {
-              manejarToqueAR(event);
+        eventos.forEach(evento => {
+          touchOverlay.addEventListener(evento, function(e) {
+            // Solo procesar eventos principales
+            if (evento === 'touchstart' || evento === 'click' || evento === 'pointerdown') {
+              logDebug(`Evento ${evento} detectado`, 'success');
+              procesarToqueAR(e);
             }
-          }, { 
+          }, {
             passive: false,
-            capture: true 
+            capture: true
           });
         });
         
-        // Prevenir scroll y zoom en dispositivos móviles
-        arTouchZone.addEventListener('touchmove', function(event) {
-          event.preventDefault();
-        }, { passive: false });
+        // Prevenir comportamientos por defecto
+        touchOverlay.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+        touchOverlay.addEventListener('gesturestart', e => e.preventDefault(), { passive: false });
         
-        arTouchZone.addEventListener('gesturestart', function(event) {
-          event.preventDefault();
-        }, { passive: false });
-        
-        logDebug('✅ Zona de toque AR configurada correctamente', 'success');
+        logDebug('Sistema de detección de toques configurado', 'success');
+        return true;
       }
       
-      // Función mejorada para manejar toques en AR
-      function manejarToqueAR(event) {
-        logDebug(`🎯 Evento AR recibido: ${event.type}`, 'info');
-        logDebug(`📊 Estados: AR=${modoAR}, Colocada=${estructuraColocada}, Init=${arInitialized}`, 'info');
+      // FUNCIÓN PARA PROCESAR TOQUES EN AR
+      function procesarToqueAR(event) {
+        logDebug('🎯 Procesando toque AR...', 'info');
+        logDebug(`Estado: AR=${modoAR}, Colocada=${estructuraColocada}, Init=${arInitialized}`, 'info');
         
-        // Verificar condiciones
+        // Verificaciones de estado
         if (!modoAR) {
           logDebug('❌ No estamos en modo AR', 'error');
           return;
         }
         
         if (estructuraColocada) {
-          logDebug('❌ Estructura ya colocada', 'error');
+          logDebug('❌ Estructura ya colocada', 'warning');
           return;
         }
         
@@ -893,85 +809,216 @@
         event.stopPropagation();
         event.stopImmediatePropagation();
         
-        logDebug('👆 Procesando toque válido...', 'success');
-        
-        // Calcular posición del toque
-        let clientX, clientY;
+        // Obtener coordenadas del toque
+        let x, y;
         
         if (event.type === 'touchstart' && event.touches && event.touches.length > 0) {
-          clientX = event.touches[0].clientX;
-          clientY = event.touches[0].clientY;
-          logDebug(`📱 Toque táctil: (${clientX}, ${clientY})`, 'info');
-        } else if (event.type === 'click') {
-          clientX = event.clientX;
-          clientY = event.clientY;
-          logDebug(`🖱️ Click: (${clientX}, ${clientY})`, 'info');
+          x = event.touches[0].clientX;
+          y = event.touches[0].clientY;
+          logDebug(`👆 Toque táctil en (${x}, ${y})`, 'success');
+        } else if (event.clientX !== undefined && event.clientY !== undefined) {
+          x = event.clientX;
+          y = event.clientY;
+          logDebug(`🖱️ Click en (${x}, ${y})`, 'success');
         } else {
-          logDebug(`❓ Usando centro de pantalla por defecto`, 'info');
-          clientX = window.innerWidth / 2;
-          clientY = window.innerHeight / 2;
+          // Usar centro de pantalla como fallback
+          x = window.innerWidth / 2;
+          y = window.innerHeight / 2;
+          logDebug(`📍 Usando centro de pantalla (${x}, ${y})`, 'info');
         }
         
-        // Mostrar indicador visual
-        mostrarIndicadorToque(clientX, clientY);
+        // Mostrar feedback visual
+        mostrarFeedbackToque(x, y);
         
-        // Convertir coordenadas de pantalla a posición 3D
-        const x = ((clientX / window.innerWidth) * 2 - 1) * 0.8;
-        const y = -((clientY / window.innerHeight) * 2 - 1) * 0.3;
-        const z = -1.2;
+        // Calcular posición 3D
+        const screenX = ((x / window.innerWidth) * 2 - 1) * 1.0;
+        const screenY = -((y / window.innerHeight) * 2 - 1) * 0.5;
+        const screenZ = -1.5;
         
-        const position = { x, y, z };
+        const posicion = {
+          x: screenX,
+          y: screenY + 0.2, // Ajuste de altura
+          z: screenZ
+        };
         
-        logDebug(`🎯 Posición calculada: (${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)})`, 'success');
+        logDebug(`📍 Posición calculada: (${posicion.x.toFixed(2)}, ${posicion.y.toFixed(2)}, ${posicion.z.toFixed(2)})`, 'success');
         
         // Colocar estructura
-        colocarEstructura(position);
+        colocarEstructuraAR(posicion);
+      }
+      
+      // Función para mostrar feedback visual del toque
+      function mostrarFeedbackToque(x, y) {
+        const feedback = document.getElementById('touch-feedback');
+        if (feedback) {
+          feedback.style.left = x + 'px';
+          feedback.style.top = y + 'px';
+          feedback.classList.add('show');
+          
+          setTimeout(() => {
+            feedback.classList.remove('show');
+          }, 600);
+        }
+      }
+      
+      // Función para verificar HTTPS
+      function verificarHTTPS() {
+        const esSeguro = location.protocol === 'https:' || 
+                        location.hostname === 'localhost' || 
+                        location.hostname === '127.0.0.1';
+        
+        if (!esSeguro) {
+          mostrarError('HTTPS requerido', 'AR requiere conexión segura (HTTPS) o localhost');
+          return false;
+        }
+        return true;
+      }
+      
+      // Función para detectar capacidades
+      function detectarCapacidades() {
+        const caps = {
+          getUserMedia: !!(navigator.mediaDevices?.getUserMedia),
+          https: window.isSecureContext,
+          mobile: /Mobi|Android/i.test(navigator.userAgent),
+          iOS: /iPad|iPhone|iPod/.test(navigator.userAgent),
+          chrome: /Chrome/.test(navigator.userAgent),
+          safari: /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent)
+        };
+        
+        logDebug(`Capacidades: ${JSON.stringify(caps)}`, 'info');
+        return caps;
       }
       
       // Función para solicitar permisos de cámara
       async function solicitarPermisos() {
-        const permissionRequest = document.getElementById('permission-request');
-        const loading = document.getElementById('loading');
+        const permissionDiv = document.getElementById('permission-request');
+        const loadingDiv = document.getElementById('loading');
         
-        permissionRequest.classList.remove('show');
-        loading.classList.add('show');
+        permissionDiv.classList.remove('show');
+        loadingDiv.classList.add('show');
         
         try {
-          actualizarCarga('Solicitando permisos de cámara...');
+          logDebug('Solicitando permisos de cámara...', 'info');
           
-          const stream = await navigator.mediaDevices.getUserMedia({
+          const constraints = {
             video: { 
               facingMode: 'environment',
               width: { ideal: 1280, min: 640 },
               height: { ideal: 720, min: 480 }
             }
-          });
+          };
           
-          cameraStream = stream;
+          cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
           logDebug('✅ Permisos de cámara obtenidos', 'success');
           
           // Inicializar AR
-          inicializarARSimple();
+          await inicializarAR();
           
         } catch (error) {
-          console.error('❌ Error al solicitar permisos:', error);
-          loading.classList.remove('show');
+          logDebug(`❌ Error permisos: ${error.name} - ${error.message}`, 'error');
+          loadingDiv.classList.remove('show');
           
-          let mensaje = 'No se pudieron obtener los permisos de cámara.';
+          let mensaje = 'Error obteniendo permisos de cámara';
           let detalles = '';
           
-          if (error.name === 'NotAllowedError') {
-            mensaje = 'Permisos de cámara denegados.';
-            detalles = 'Por favor, permite el acceso a la cámara y recarga la página.';
-          } else if (error.name === 'NotFoundError') {
-            mensaje = 'No se encontró una cámara en este dispositivo.';
-            detalles = 'Verifica que tu dispositivo tenga una cámara disponible.';
-          } else if (error.name === 'NotSupportedError') {
-            mensaje = 'Tu navegador no soporta acceso a cámara.';
-            detalles = 'Prueba con Chrome o Safari en un dispositivo móvil.';
+          switch (error.name) {
+            case 'NotAllowedError':
+              mensaje = 'Permisos de cámara denegados';
+              detalles = 'Por favor, permite el acceso a la cámara y recarga la página';
+              break;
+            case 'NotFoundError':
+              mensaje = 'No se encontró cámara';
+              detalles = 'Verifica que tu dispositivo tenga una cámara disponible';
+              break;
+            case 'NotSupportedError':
+              mensaje = 'Navegador no compatible';
+              detalles = 'Usa Chrome o Safari en dispositivo móvil';
+              break;
+            default:
+              detalles = error.message;
           }
           
           mostrarError(mensaje, detalles);
+        }
+      }
+      
+      // Función para inicializar AR
+      async function inicializarAR() {
+        const loading = document.getElementById('loading');
+        
+        try {
+          logDebug('🚀 Inicializando AR...', 'info');
+          
+          // Crear video de fondo
+          const video = document.createElement('video');
+          video.id = 'ar-camera-video';
+          video.className = 'ar-camera-video';
+          video.autoplay = true;
+          video.muted = true;
+          video.playsInline = true;
+          
+          if (cameraStream) {
+            video.srcObject = cameraStream;
+            await video.play();
+            logDebug('📹 Video de cámara iniciado', 'success');
+          }
+          
+          document.body.appendChild(video);
+          
+          // Crear nueva escena AR
+          const arScene = document.createElement('a-scene');
+          arScene.id = 'ar-scene';
+          arScene.setAttribute('embedded', true);
+          arScene.setAttribute('background', 'color: transparent');
+          arScene.setAttribute('loading-screen', 'enabled: false');
+          arScene.setAttribute('vr-mode-ui', 'enabled: false');
+          arScene.setAttribute('device-orientation-permission-ui', 'enabled: false');
+          
+          // Deshabilitar interacciones de A-Frame con el cursor
+          arScene.setAttribute('cursor', 'rayOrigin: mouse; downEvents: ; upEvents: ; clickEvents: ;');
+          arScene.setAttribute('raycaster', 'far: 0; objects: .no-interactions');
+          
+          // Agregar cámara AR
+          const camera = document.createElement('a-entity');
+          camera.setAttribute('camera', 'active: true; fov: 70;');
+          camera.setAttribute('position', '0 1.6 0');
+          camera.setAttribute('look-controls', 'enabled: false');
+          camera.setAttribute('wasd-controls', 'enabled: false');
+          arScene.appendChild(camera);
+          
+          // Agregar luces
+          const ambientLight = document.createElement('a-light');
+          ambientLight.setAttribute('type', 'ambient');
+          ambientLight.setAttribute('color', '#777777');
+          arScene.appendChild(ambientLight);
+          
+          const directionalLight = document.createElement('a-light');
+          directionalLight.setAttribute('type', 'directional');
+          directionalLight.setAttribute('position', '0 5 5');
+          directionalLight.setAttribute('color', '#ffffff');
+          directionalLight.setAttribute('intensity', '0.8');
+          arScene.appendChild(directionalLight);
+          
+          // Reemplazar escena existente
+          const oldScene = document.getElementById('main-scene');
+          oldScene.parentNode.replaceChild(arScene, oldScene);
+          
+          // Configurar sistema de toques
+          configurarDeteccionToques();
+          
+          // Finalizar inicialización
+          setTimeout(() => {
+            loading.classList.remove('show');
+            document.getElementById('ar-instructions').classList.add('show');
+            arInitialized = true;
+            actualizarEstadoAR('✅ Listo - Toca la pantalla para colocar');
+            logDebug('🎉 AR inicializado correctamente', 'success');
+          }, 2000);
+          
+        } catch (error) {
+          logDebug(`❌ Error inicializando AR: ${error.message}`, 'error');
+          loading.classList.remove('show');
+          mostrarError('Error inicializando AR', error.message);
         }
       }
       
@@ -985,21 +1032,8 @@
         errorText.textContent = titulo;
         errorDetails.innerHTML = detalles ? `<p><small>${detalles}</small></p>` : '';
         errorDiv.classList.add('show');
-      }
-      
-      // Función para reintentar
-      function reintentar() {
-        document.getElementById('error-message').classList.remove('show');
-        if (modoAR) {
-          // Limpiar estado anterior
-          if (cameraStream) {
-            cameraStream.getTracks().forEach(track => track.stop());
-            cameraStream = null;
-          }
-          arInitialized = false;
-          estructuraColocada = false;
-          solicitarPermisos();
-        }
+        
+        logDebug(`ERROR: ${titulo} - ${detalles}`, 'error');
       }
       
       // Función para cerrar instrucciones
@@ -1007,338 +1041,49 @@
         document.getElementById('ar-instructions').classList.remove('show');
         document.getElementById('ar-cursor').classList.add('show');
         
-        // Activar zona de toque
-        if (arTouchZone) {
-          arTouchZone.classList.remove('inactive');
-          arTouchZone.classList.add('active');
-          logDebug('✅ Zona de toque activada', 'success');
+        // Activar overlay de toque
+        if (touchOverlay) {
+          touchOverlay.classList.add('active');
+          logDebug('✅ Overlay de toque activado', 'success');
         }
       }
       
-      // Función para inicializar AR simple
-      function inicializarARSimple() {
-        const loading = document.getElementById('loading');
-        
-        try {
-          actualizarCarga('Configurando AR nativo...');
-          logDebug('🚀 Iniciando configuración AR', 'info');
-          
-          // Crear escena AR básica
-          const arScene = document.createElement('a-scene');
-          arScene.id = 'ar-scene';
-          arScene.setAttribute('embedded', true);
-          arScene.setAttribute('background', 'color: transparent');
-          arScene.setAttribute('loading-screen', 'enabled: false');
-          arScene.setAttribute('vr-mode-ui', 'enabled: false');
-          arScene.setAttribute('device-orientation-permission-ui', 'enabled: false');
-          
-          // Configurar video de cámara como fondo
-          const video = document.createElement('video');
-          video.id = 'camera-feed';
-          video.className = 'ar-camera-feed';
-          video.setAttribute('autoplay', '');
-          video.setAttribute('muted', '');
-          video.setAttribute('playsinline', '');
-          
-          // Configurar stream de cámara
-          if (cameraStream) {
-            video.srcObject = cameraStream;
-            video.play().then(() => {
-              logDebug('📹 Video de cámara iniciado', 'success');
-            }).catch(e => {
-              logDebug('❌ Error reproduciendo video: ' + e.message, 'error');
-            });
-          }
-          
-          // Agregar video al DOM
-          document.body.appendChild(video);
-          
-          // Crear cámara AR
-          const cameraAR = document.createElement('a-entity');
-          cameraAR.setAttribute('camera', 'active: true; fov: 70;');
-          cameraAR.setAttribute('position', '0 1.6 0');
-          arScene.appendChild(cameraAR);
-          
-          // Agregar iluminación
-          const ambientLight = document.createElement('a-light');
-          ambientLight.setAttribute('type', 'ambient');
-          ambientLight.setAttribute('color', '#777777');
-          arScene.appendChild(ambientLight);
-          
-          const directionalLight = document.createElement('a-light');
-          directionalLight.setAttribute('type', 'directional');
-          directionalLight.setAttribute('position', '0 5 5');
-          directionalLight.setAttribute('color', '#ffffff');
-          directionalLight.setAttribute('intensity', '0.8');
-          arScene.appendChild(directionalLight);
-          
-          // Reemplazar escena
-          const oldScene = document.getElementById('main-scene');
-          oldScene.parentNode.replaceChild(arScene, oldScene);
-          
-          // Configurar sistema de toque
-          configurarZonaToque();
-          
-          // Simular inicialización exitosa
-          setTimeout(() => {
-            logDebug('✅ AR simple inicializado', 'success');
-            loading.classList.remove('show');
-            document.getElementById('permission-request').classList.add('show');
-          
-          // Actualizar UI
-          document.body.classList.add('ar-mode');
-          btn3D.classList.remove('active');
-          btnAR.classList.add('active');
-          modeInfo.innerHTML = '<strong>Modo:</strong> 📱 AR Superficie';
-          controlsText.textContent = '🎮 Controles AR:';
-          controlsDesc.textContent = 'Mueve el dispositivo y toca para colocar';
-          
-        } else {
-          // Cambiar a modo 3D
-          if (cameraStream) {
-            cameraStream.getTracks().forEach(track => track.stop());
-            cameraStream = null;
-          }
-          
-          // Limpiar video de fondo
-          const video = document.getElementById('camera-feed');
-          if (video) {
-            video.remove();
-          }
-          
-          // Desactivar zona de toque
-          if (arTouchZone) {
-            arTouchZone.classList.remove('active');
-            arTouchZone.classList.add('inactive');
-          }
-          
-          // Restaurar escena 3D
-          if (document.getElementById('ar-scene')) {
-            location.reload();
-            return;
-          }
-          
-          // Actualizar UI
-          document.body.classList.remove('ar-mode');
-          btn3D.classList.add('active');
-          btnAR.classList.remove('active');
-          modeInfo.innerHTML = '<strong>Modo:</strong> 🖥️ 3D Normal';
-          controlsText.textContent = '🎮 Controles 3D:';
-          controlsDesc.textContent = 'Arrastra: Rotar • Pellizca: Zoom';
-          
-          // Ocultar popups
-          document.getElementById('permission-request').classList.remove('show');
-          document.getElementById('error-message').classList.remove('show');
-          document.getElementById('loading').classList.remove('show');
-          document.getElementById('ar-instructions').classList.remove('show');
-          document.getElementById('reset-button').classList.remove('show');
-          document.getElementById('ar-cursor').classList.remove('show');
-          
-          console.log('✅ Modo 3D activado');
-        }
-      }
-      
-      // Función para verificar soporte de AR
-      function verificarSoporteAR() {
-        const capacidades = detectarCapacidades();
-        
-        if (!capacidades.getUserMedia) {
-          console.warn('⚠️ getUserMedia no soportado');
-          return false;
-        }
-        
-        if (!capacidades.https) {
-          console.warn('⚠️ HTTPS requerido');
-          return false;
-        }
-        
-        return true;
-      }
-      
-      // Inicialización principal
-      window.addEventListener('DOMContentLoaded', function() {
-        const estructura = document.getElementById('estructura-principal');
-        const camara = document.getElementById('camara-principal');
-        const boton = document.getElementById('btn-deformacion');
-        const btn3D = document.getElementById('btn-3d');
-        const btnAR = document.getElementById('btn-ar');
-        
-        console.log('🚀 Iniciando aplicación AR/3D...');
-        logDebug('🚀 Aplicación iniciada', 'success');
-        
-        // Detectar capacidades del dispositivo
-        const capacidades = detectarCapacidades();
-        
-        // Verificar soporte AR
-        if (!verificarSoporteAR()) {
-          btnAR.disabled = true;
-          btnAR.textContent = '❌ AR No Disponible';
-          btnAR.style.background = '#666';
-          btnAR.title = 'AR requiere HTTPS y cámara';
-        }
-        
-        // Event listeners
-        if (boton) {
-          boton.addEventListener('click', toggleDeformacion);
-        }
-        
-        if (btn3D) {
-          btn3D.addEventListener('click', () => cambiarModo(false));
-        }
-        
-        if (btnAR && !btnAR.disabled) {
-          btnAR.addEventListener('click', () => cambiarModo(true));
-        }
-        
-        // Configurar escena 3D
-        estructura.setAttribute('scale', `${ESCALA} ${ESCALA} ${ESCALA}`);
-        
-        const Lv1 = 3, Lh1 = 4;
-        const dimensionX = Lh1 * 2 * ESCALA;
-        const dimensionY = Lv1 * 2 * ESCALA;
-        const centroX = dimensionX / 2;
-        const centroY = dimensionY / 2;
-        const distanciaOptima = Math.max(dimensionX, dimensionY) * 3;
-        const alturaOptima = dimensionY * 1.5;
-        
-        camara.setAttribute('position', `${centroX} ${alturaOptima} ${distanciaOptima}`);
-        camara.setAttribute('look-at', `${centroX} ${centroY} 0`);
-        
-        // Crear líneas iniciales
-        setTimeout(() => {
-          actualizarLineas();
-        }, 500);
-        
-        // Debug info inicial
-        const debugInfo = document.getElementById('debug-info');
-        if (debugInfo) {
-          debugInfo.innerHTML = `
-            <strong>Sistema:</strong> ${capacidades.mobile ? 'Móvil' : 'Desktop'}<br>
-            <strong>Navegador:</strong> ${capacidades.chrome ? 'Chrome' : capacidades.safari ? 'Safari' : 'Otro'}<br>
-            <strong>HTTPS:</strong> ${capacidades.https ? '✅' : '❌'}<br>
-            <strong>Cámara:</strong> ${capacidades.getUserMedia ? '✅' : '❌'}<br>
-            <strong>WebXR:</strong> ${capacidades.webxr ? '✅' : '❌'}
-          `;
-        }
-        
-        // Configurar zona de toque inicial (inactiva)
-        arTouchZone = document.getElementById('ar-touch-zone');
-        if (arTouchZone) {
-          arTouchZone.classList.add('inactive');
-          logDebug('🎯 Zona de toque inicializada (inactiva)', 'info');
-        }
-        
-        console.log('✅ Aplicación inicializada correctamente');
-        console.log('📊 Capacidades:', capacidades);
-        logDebug('✅ Aplicación inicializada correctamente', 'success');
-      });
-      
-      // Limpieza al cerrar
-      window.addEventListener('beforeunload', function() {
-        if (cameraStream) {
-          cameraStream.getTracks().forEach(track => track.stop());
-        }
-      });
-      
-      // Prevenir zoom y scroll en dispositivos móviles
-      document.addEventListener('gesturestart', function (e) {
-        e.preventDefault();
-      });
-      
-      document.addEventListener('touchmove', function(e) {
-        // Solo prevenir si es en modo AR y en la zona de toque
-        if (modoAR && e.target.closest('#ar-touch-zone')) {
-          e.preventDefault();
-        }
-      }, { passive: false });
-      
-      // Prevenir double-tap zoom en iOS
-      let lastTouchEnd = 0;
-      document.addEventListener('touchend', function (event) {
-        const now = (new Date()).getTime();
-        if (now - lastTouchEnd <= 300) {
-          event.preventDefault();
-        }
-        lastTouchEnd = now;
-      }, false);
-      
-      // Funciones globales
-      window.reintentar = reintentar;
-      window.solicitarPermisos = solicitarPermisos;
-      window.cambiarModo = cambiarModo;
-      window.cerrarInstrucciones = cerrarInstrucciones;
-      window.resetearEstructura = resetearEstructura;
-      window.colocarEstructuraManual = colocarEstructuraManual;
-      window.toggleDebug = toggleDebug;
-      window.clearDebugLog = clearDebugLog;
-      
-      // Variables globales para debug
-      window.modoAR = false;
-      window.estructuraColocada = false;
-      window.arInitialized = false;
-      window.logDebug = logDebug;
-    </script>
-  </body>
-</html>d('ar-instructions').classList.add('show');
-            arInitialized = true;
-            actualizarEstadoAR('✅ Listo - Toca la pantalla para colocar');
-          }, 2000);
-          
-        } catch (error) {
-          logDebug('❌ Error inicializando AR: ' + error.message, 'error');
-          loading.classList.remove('show');
-          mostrarError('Error AR Simple', 'No se pudo configurar la cámara AR: ' + error.message);
-        }
-      }
-      
-      // Función global para colocación manual (botón de emergencia)
+      // Función para colocar estructura manualmente
       function colocarEstructuraManual() {
-        logDebug('🔧 Colocación manual iniciada', 'info');
+        logDebug('🔧 Colocación manual activada', 'info');
         
-        if (!modoAR) {
-          logDebug('❌ No estamos en modo AR', 'error');
+        if (!modoAR || estructuraColocada) {
+          logDebug('❌ Colocación manual no permitida', 'warning');
           return;
         }
         
-        if (estructuraColocada) {
-          logDebug('❌ Estructura ya colocada', 'error');
-          return;
-        }
-        
-        logDebug('✅ Ejecutando colocación manual...', 'success');
-        const position = { x: 0, y: -0.2, z: -1.2 };
-        colocarEstructura(position);
+        const posicion = { x: 0, y: 0, z: -1.5 };
+        colocarEstructuraAR(posicion);
       }
       
-      // Función para crear línea
+      // Función para crear líneas entre nodos
       function crearLinea(id, punto1, punto2, color = '#4488ff') {
         const lineaExistente = document.getElementById(id);
-        if (lineaExistente) {
-          lineaExistente.remove();
-        }
+        if (lineaExistente) lineaExistente.remove();
         
         const linea = document.createElement('a-entity');
-        linea.setAttribute('id', id);
+        linea.id = id;
         linea.setAttribute('line', {
           start: `${punto1.x} ${punto1.y} ${punto1.z || 0}`,
           end: `${punto2.x} ${punto2.y} ${punto2.z || 0}`,
           color: color,
-          linewidth: 12,
+          linewidth: 8,
           opacity: 0.9
         });
         
-        // Agregar a la estructura AR si existe, sino a la escena
         const contenedor = estructuraAR || document.querySelector('a-scene');
-        if (contenedor) {
-          contenedor.appendChild(linea);
-        }
+        if (contenedor) contenedor.appendChild(linea);
       }
       
       // Función para actualizar líneas
       function actualizarLineas() {
         for (let i = 0; i < conectividad.length; i++) {
-          const nodo1Idx = conectividad[i][0];
-          const nodo2Idx = conectividad[i][1];
+          const [nodo1Idx, nodo2Idx] = conectividad[i];
           const lineaId = `linea-${i + 1}`;
           
           const prefijo = modoAR ? 'nodo-ar-' : 'nodo-';
@@ -1354,113 +1099,100 @@
         }
       }
       
-      // Función para colocar estructura en posición específica
-      function colocarEstructura(position) {
-        logDebug('🏗️ Iniciando colocación de estructura...', 'info');
+      // FUNCIÓN PRINCIPAL PARA COLOCAR ESTRUCTURA EN AR
+      function colocarEstructuraAR(posicion) {
+        logDebug('🏗️ Colocando estructura AR...', 'info');
         
         if (estructuraColocada) {
-          logDebug('❌ Estructura ya colocada, ignorando', 'error');
+          logDebug('❌ Estructura ya colocada', 'warning');
           return;
         }
         
-        logDebug(`📍 Colocando en posición: (${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)})`, 'info');
-        
-        // Crear contenedor de estructura AR
+        // Crear contenedor principal
         estructuraAR = document.createElement('a-entity');
         estructuraAR.id = 'estructura-ar';
-        estructuraAR.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
+        estructuraAR.setAttribute('position', `${posicion.x} ${posicion.y} ${posicion.z}`);
         estructuraAR.setAttribute('scale', `${ESCALA_AR} ${ESCALA_AR} ${ESCALA_AR}`);
         
-        logDebug('📦 Contenedor de estructura creado', 'success');
+        // Crear plano base
+        const plano = document.createElement('a-plane');
+        plano.setAttribute('position', '4 -0.5 0');
+        plano.setAttribute('rotation', '-90 0 0');
+        plano.setAttribute('width', '12');
+        plano.setAttribute('height', '8');
+        plano.setAttribute('color', '#ffffff');
+        plano.setAttribute('opacity', '0.15');
+        plano.setAttribute('transparent', true);
+        estructuraAR.appendChild(plano);
         
-        // Crear plano base semitransparente
-        const planoBase = document.createElement('a-plane');
-        planoBase.setAttribute('position', '4 -0.2 0');
-        planoBase.setAttribute('rotation', '-90 0 0');
-        planoBase.setAttribute('width', '10');
-        planoBase.setAttribute('height', '6');
-        planoBase.setAttribute('color', '#ffffff');
-        planoBase.setAttribute('opacity', '0.2');
-        planoBase.setAttribute('transparent', true);
-        estructuraAR.appendChild(planoBase);
-        
-        logDebug('⬜ Plano base agregado', 'info');
-        
-        // Crear nodos AR
+        // Crear nodos
         for (let i = 0; i < 8; i++) {
           const nodo = document.createElement('a-sphere');
           nodo.id = `nodo-ar-${i + 1}`;
           nodo.setAttribute('position', `${posicionesOriginales[i][0]} ${posicionesOriginales[i][1]} 0`);
-          nodo.setAttribute('radius', '0.3');
+          nodo.setAttribute('radius', '0.25');
           nodo.setAttribute('color', '#ff4444');
-          nodo.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 12000');
+          nodo.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 15000');
           nodo.setAttribute('shadow', 'cast: true');
           
-          // Agregar texto del número
+          // Texto del nodo
           const texto = document.createElement('a-text');
           texto.setAttribute('value', (i + 1).toString());
-          texto.setAttribute('position', '0 0.8 0');
+          texto.setAttribute('position', '0 0.7 0');
           texto.setAttribute('align', 'center');
           texto.setAttribute('color', '#ffffff');
-          texto.setAttribute('scale', '3 3 3');
+          texto.setAttribute('scale', '2.5 2.5 2.5');
           texto.setAttribute('geometry', 'primitive: plane; width: auto; height: auto');
-          texto.setAttribute('material', 'color: #000000; transparent: true; opacity: 0.7');
+          texto.setAttribute('material', 'color: #000000; transparent: true; opacity: 0.8');
           nodo.appendChild(texto);
           
           estructuraAR.appendChild(nodo);
-          logDebug(`🔴 Nodo ${i+1} creado en (${posicionesOriginales[i][0]}, ${posicionesOriginales[i][1]})`, 'info');
+          logDebug(`Nodo ${i+1} creado`, 'info');
         }
         
-        // Agregar estructura a la escena
+        // Agregar a la escena
         const scene = document.querySelector('a-scene');
         if (scene) {
           scene.appendChild(estructuraAR);
           logDebug('✅ Estructura agregada a la escena', 'success');
-        } else {
-          logDebug('❌ No se encontró la escena A-Frame', 'error');
-          return;
         }
         
         estructuraColocada = true;
         
-        // Desactivar zona de toque
-        if (arTouchZone) {
-          arTouchZone.classList.remove('active');
-          arTouchZone.classList.add('inactive');
-          logDebug('🚫 Zona de toque desactivada', 'info');
+        // Desactivar overlay de toque
+        if (touchOverlay) {
+          touchOverlay.classList.remove('active');
+          logDebug('🚫 Overlay de toque desactivado', 'info');
         }
         
-        // Ocultar cursor y actualizar UI
+        // Actualizar UI
         document.getElementById('ar-cursor').classList.remove('show');
-        actualizarEstadoAR('✅ Estructura colocada exitosamente');
         document.getElementById('btn-deformacion').disabled = false;
         document.getElementById('deform-status').textContent = '¡Listo para deformar!';
         document.getElementById('reset-button').classList.add('show');
+        actualizarEstadoAR('✅ Estructura colocada exitosamente');
         
-        logDebug('🎮 UI actualizada - controles habilitados', 'success');
-        
-        // Crear líneas después de un momento
+        // Crear líneas
         setTimeout(() => {
           actualizarLineas();
-          logDebug('🔗 Líneas de conexión creadas', 'success');
+          logDebug('🔗 Líneas creadas', 'success');
         }, 500);
         
-        // Pequeña animación de confirmación
+        // Animación de aparición
         if (estructuraAR) {
-          estructuraAR.setAttribute('animation', 'property: scale; from: 0.1 0.1 0.1; to: ' + ESCALA_AR + ' ' + ESCALA_AR + ' ' + ESCALA_AR + '; dur: 800; easing: easeOutBack');
-          logDebug('🎬 Animación de colocación iniciada', 'info');
+          estructuraAR.setAttribute('animation', 
+            `property: scale; from: 0.05 0.05 0.05; to: ${ESCALA_AR} ${ESCALA_AR} ${ESCALA_AR}; dur: 1000; easing: easeOutBack`);
         }
         
-        logDebug('🎉 Estructura AR colocada exitosamente!', 'success');
+        logDebug('🎉 Estructura AR colocada exitosamente', 'success');
       }
       
       // Función para resetear estructura
       function resetearEstructura() {
         if (!modoAR) return;
         
-        logDebug('🔄 Reseteando estructura AR...', 'info');
+        logDebug('🔄 Reseteando estructura...', 'info');
         
-        // Remover estructura existente
         if (estructuraAR) {
           estructuraAR.remove();
           estructuraAR = null;
@@ -1475,23 +1207,73 @@
         estructuraColocada = false;
         estructuraDeformada = false;
         
-        // Reactivar zona de toque
-        if (arTouchZone) {
-          arTouchZone.classList.remove('inactive');
-          arTouchZone.classList.add('active');
-          logDebug('✅ Zona de toque reactivada', 'success');
+        // Reactivar overlay
+        if (touchOverlay) {
+          touchOverlay.classList.add('active');
+          logDebug('✅ Overlay reactivado', 'success');
         }
         
         // Actualizar UI
         document.getElementById('ar-cursor').classList.add('show');
-        actualizarEstadoAR('Busca una superficie y toca para colocar');
         document.getElementById('btn-deformacion').disabled = true;
         document.getElementById('btn-deformacion').textContent = 'Mostrar Deformada';
         document.getElementById('btn-deformacion').style.backgroundColor = '#4488ff';
         document.getElementById('deform-status').textContent = 'Primero coloca la estructura';
         document.getElementById('reset-button').classList.remove('show');
+        actualizarEstadoAR('Toca la pantalla para colocar estructura');
         
-        logDebug('🔄 Estructura reseteada - Lista para nueva colocación', 'success');
+        logDebug('✅ Reset completado', 'success');
+      }
+      
+      // Función para alternar deformación
+      function toggleDeformacion() {
+        if (!estructuraColocada) return;
+        
+        estructuraDeformada = !estructuraDeformada;
+        const boton = document.getElementById('btn-deformacion');
+        
+        logDebug(`🔧 ${estructuraDeformada ? 'Aplicando' : 'Removiendo'} deformación`, 'info');
+        
+        const prefijo = modoAR ? 'nodo-ar-' : 'nodo-';
+        
+        for (let i = 0; i < 8; i++) {
+          const nodo = document.getElementById(`${prefijo}${i + 1}`);
+          if (!nodo) continue;
+          
+          let x, y;
+          
+          if (estructuraDeformada) {
+            const desplX = desplazamientos[i].x * FACTOR_AMPLIFICACION;
+            const desplY = desplazamientos[i].y * FACTOR_AMPLIFICACION;
+            x = posicionesOriginales[i][0] + desplX;
+            y = posicionesOriginales[i][1] + desplY;
+            const rotZ = desplazamientos[i].rot * (180 / Math.PI) * FACTOR_AMPLIFICACION;
+            
+            nodo.setAttribute('position', {x, y, z: 0});
+            nodo.setAttribute('rotation', {x: 0, y: 0, z: rotZ});
+            nodo.setAttribute('material', 'color', '#ff8844');
+            nodo.setAttribute('animation__deform', 'property: scale; from: 1 1 1; to: 1.3 1.3 1.3; dur: 400; direction: alternate; loop: 2');
+          } else {
+            x = posicionesOriginales[i][0];
+            y = posicionesOriginales[i][1];
+            
+            nodo.setAttribute('position', {x, y, z: 0});
+            nodo.setAttribute('rotation', {x: 0, y: 0, z: 0});
+            nodo.setAttribute('material', 'color', '#ff4444');
+            nodo.removeAttribute('animation__deform');
+          }
+        }
+        
+        // Actualizar líneas
+        setTimeout(() => actualizarLineas(), 300);
+        
+        // Actualizar botón
+        if (boton) {
+          boton.textContent = estructuraDeformada ? 'Mostrar Original' : 'Mostrar Deformada';
+          boton.style.backgroundColor = estructuraDeformada ? '#ff6644' : '#4488ff';
+        }
+        
+        actualizarEstadoAR(estructuraDeformada ? '🔧 Mostrando deformaciones' : '✅ Estructura original');
       }
       
       // Función para actualizar estado AR
@@ -1502,105 +1284,183 @@
         }
       }
       
-      // Función para alternar deformación
-      function toggleDeformacion() {
-        if (!estructuraColocada) return;
-        
-        estructuraDeformada = !estructuraDeformada;
-        const boton = document.getElementById('btn-deformacion');
-        const debugInfo = document.getElementById('debug-info');
-        
-        let debugText = `<strong>Estado:</strong> ${estructuraDeformada ? 'DEFORMADA' : 'ORIGINAL'}<br>`;
-        debugText += `<strong>Modo:</strong> ${modoAR ? 'AR' : '3D'}<br>`;
-        debugText += `<strong>Factor:</strong> ${FACTOR_AMPLIFICACION}x<br><br>`;
-        
-        posicionesActuales = [];
-        
-        const prefijo = modoAR ? 'nodo-ar-' : 'nodo-';
-        
-        for (let i = 0; i < 8; i++) {
-          const nodo = document.getElementById(`${prefijo}${i + 1}`);
-          
-          if (nodo) {
-            let x, y;
-            
-            if (estructuraDeformada) {
-              const desplX = desplazamientos[i].x * FACTOR_AMPLIFICACION;
-              const desplY = desplazamientos[i].y * FACTOR_AMPLIFICACION;
-              x = posicionesOriginales[i][0] + desplX;
-              y = posicionesOriginales[i][1] + desplY;
-              const rotZ = desplazamientos[i].rot * (180 / Math.PI) * FACTOR_AMPLIFICACION;
-              
-              nodo.setAttribute('position', {x: x, y: y, z: 0});
-              nodo.setAttribute('rotation', {x: 0, y: 0, z: rotZ});
-              nodo.setAttribute('material', 'color', '#ff8844');
-              
-              // Animación de deformación
-              nodo.setAttribute('animation__deform', 'property: scale; from: 1 1 1; to: 1.2 1.2 1.2; dur: 300; direction: alternate; loop: 2');
-              
-              if (Math.abs(desplX) > 0.001 || Math.abs(desplY) > 0.001 || Math.abs(rotZ) > 1) {
-                debugText += `<span style="color: #ff8844;">N${i + 1}: Δ[${(desplX*1000).toFixed(1)}, ${(desplY*1000).toFixed(1)}]mm ∠${rotZ.toFixed(1)}°</span><br>`;
-              } else {
-                debugText += `N${i + 1}: Sin deformación significativa<br>`;
-              }
-            } else {
-              x = posicionesOriginales[i][0];
-              y = posicionesOriginales[i][1];
-              
-              nodo.setAttribute('position', {x: x, y: y, z: 0});
-              nodo.setAttribute('rotation', {x: 0, y: 0, z: 0});
-              nodo.setAttribute('material', 'color', '#ff4444');
-              nodo.removeAttribute('animation__deform');
-              
-              debugText += `N${i + 1}: Posición original [${x}, ${y}]<br>`;
-            }
-            
-            posicionesActuales[i] = {x: x, y: y};
-          }
-        }
-        
-        // Actualizar líneas con delay para animación
-        setTimeout(() => {
-          actualizarLineas();
-        }, 200);
-        
-        if (debugInfo) {
-          debugInfo.innerHTML = debugText;
-        }
-        
-        if (boton) {
-          boton.textContent = estructuraDeformada ? 'Mostrar Original' : 'Mostrar Deformada';
-          boton.style.backgroundColor = estructuraDeformada ? '#ff6644' : '#4488ff';
-        }
-        
-        actualizarEstadoAR(estructuraDeformada ? '🔧 Mostrando deformaciones' : '✅ Mostrando estructura original');
-      }
-      
-      // Función para cambiar entre modo 3D y AR
+      // Función para cambiar modo
       function cambiarModo(nuevoModoAR) {
+        if (nuevoModoAR === modoAR) return;
+        
+        logDebug(`🔄 Cambiando a modo ${nuevoModoAR ? 'AR' : '3D'}`, 'info');
+        
         const btn3D = document.getElementById('btn-3d');
         const btnAR = document.getElementById('btn-ar');
-        const modeInfo = document.getElementById('mode-info');
-        const controlsText = document.getElementById('controls-text');
-        const controlsDesc = document.getElementById('controls-desc');
-        
-        if (nuevoModoAR === modoAR) return;
         
         modoAR = nuevoModoAR;
         
         if (modoAR) {
-          // Cambiar a modo AR
           if (!verificarHTTPS()) {
             modoAR = false;
             return;
           }
           
-          // Verificar capacidades
-          const capacidades = detectarCapacidades();
-          if (!capacidades.getUserMedia) {
+          const caps = detectarCapacidades();
+          if (!caps.getUserMedia) {
             mostrarError('Cámara no disponible', 'Tu navegador no soporta acceso a cámara');
             modoAR = false;
             return;
           }
           
-          document.getElementByI
+          // Activar modo AR
+          document.getElementById('permission-request').classList.add('show');
+          btn3D.classList.remove('active');
+          btnAR.classList.add('active');
+          document.getElementById('mode-info').innerHTML = '<strong>Modo:</strong> 📱 AR Superficie';
+          document.getElementById('controls-text').textContent = '🎮 Controles AR:';
+          document.getElementById('controls-desc').textContent = 'Mueve el dispositivo y toca para colocar';
+          
+        } else {
+          // Activar modo 3D
+          if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+          }
+          
+          const video = document.getElementById('ar-camera-video');
+          if (video) video.remove();
+          
+          if (touchOverlay) {
+            touchOverlay.classList.remove('active');
+          }
+          
+          if (document.getElementById('ar-scene')) {
+            location.reload();
+            return;
+          }
+          
+          btn3D.classList.add('active');
+          btnAR.classList.remove('active');
+          document.getElementById('mode-info').innerHTML = '<strong>Modo:</strong> 🖥️ 3D Normal';
+          document.getElementById('controls-text').textContent = '🎮 Controles 3D:';
+          document.getElementById('controls-desc').textContent = 'Arrastra: Rotar • Pellizca: Zoom';
+          
+          // Ocultar popups
+          ['permission-request', 'error-message', 'loading', 'ar-instructions', 'reset-button', 'ar-cursor'].forEach(id => {
+            document.getElementById(id).classList.remove('show');
+          });
+        }
+      }
+      
+      // Función para reintentar
+      function reintentar() {
+        document.getElementById('error-message').classList.remove('show');
+        if (modoAR) {
+          if (cameraStream) {
+            cameraStream.getTracks().forEach(track => track.stop());
+            cameraStream = null;
+          }
+          arInitialized = false;
+          estructuraColocada = false;
+          solicitarPermisos();
+        }
+      }
+      
+      // Inicialización principal
+      window.addEventListener('DOMContentLoaded', function() {
+        logDebug('🚀 Iniciando aplicación AR/3D', 'success');
+        
+        const caps = detectarCapacidades();
+        
+        // Verificar soporte AR
+        const btnAR = document.getElementById('btn-ar');
+        if (!caps.getUserMedia || !caps.https) {
+          btnAR.disabled = true;
+          btnAR.textContent = '❌ AR No Disponible';
+          btnAR.style.background = '#666';
+        }
+        
+        // Configurar escena 3D inicial
+        const estructura = document.getElementById('estructura-principal');
+        const camara = document.getElementById('camara-principal');
+        
+        if (estructura) {
+          estructura.setAttribute('scale', `${ESCALA} ${ESCALA} ${ESCALA}`);
+        }
+        
+        if (camara) {
+          const Lv1 = 3, Lh1 = 4;
+          const dimensionX = Lh1 * 2 * ESCALA;
+          const dimensionY = Lv1 * 2 * ESCALA;
+          const centroX = dimensionX / 2;
+          const centroY = dimensionY / 2;
+          const distanciaOptima = Math.max(dimensionX, dimensionY) * 3;
+          const alturaOptima = dimensionY * 1.5;
+          
+          camara.setAttribute('position', `${centroX} ${alturaOptima} ${distanciaOptima}`);
+          camara.setAttribute('look-at', `${centroX} ${centroY} 0`);
+        }
+        
+        // Crear líneas iniciales después de un momento
+        setTimeout(() => {
+          actualizarLineas();
+        }, 1000);
+        
+        // Actualizar debug info
+        const debugInfo = document.getElementById('debug-info');
+        if (debugInfo) {
+          debugInfo.innerHTML = `
+            <strong>Sistema:</strong> ${caps.mobile ? 'Móvil' : 'Desktop'}<br>
+            <strong>Navegador:</strong> ${caps.chrome ? 'Chrome' : caps.safari ? 'Safari' : 'Otro'}<br>
+            <strong>HTTPS:</strong> ${caps.https ? '✅' : '❌'}<br>
+            <strong>Cámara:</strong> ${caps.getUserMedia ? '✅' : '❌'}
+          `;
+        }
+        
+        logDebug('✅ Aplicación inicializada correctamente', 'success');
+      });
+      
+      // Limpieza al cerrar
+      window.addEventListener('beforeunload', function() {
+        if (cameraStream) {
+          cameraStream.getTracks().forEach(track => track.stop());
+        }
+      });
+      
+      // Prevenir gestos del navegador
+      document.addEventListener('gesturestart', e => e.preventDefault());
+      // Prevenir gestos del navegador
+      document.addEventListener('gesturestart', e => e.preventDefault());
+      document.addEventListener('touchmove', function(e) {
+        if (modoAR && e.target.closest('#ar-touch-overlay')) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+      
+      // Prevenir double-tap zoom
+      let lastTouchEnd = 0;
+      document.addEventListener('touchend', function(event) {
+        const now = Date.now();
+        if (now - lastTouchEnd <= 300) {
+          event.preventDefault();
+        }
+        lastTouchEnd = now;
+      }, false);
+      
+      // Funciones globales
+      window.solicitarPermisos = solicitarPermisos;
+      window.cambiarModo = cambiarModo;
+      window.cerrarInstrucciones = cerrarInstrucciones;
+      window.resetearEstructura = resetearEstructura;
+      window.colocarEstructuraManual = colocarEstructuraManual;
+      window.toggleDeformacion = toggleDeformacion;
+      window.toggleDebug = toggleDebug;
+      window.clearDebugLog = clearDebugLog;
+      window.reintentar = reintentar;
+      
+      // Variables globales para debug
+      window.modoAR = false;
+      window.estructuraColocada = false;
+      window.arInitialized = false;
+      window.logDebug = logDebug;
+      
+      logDebug('🎯 Sistema de toques AR configurado y listo', 'success');
+    </script>
+  </body>
+</html>
