@@ -2,29 +2,26 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Estructura de Nodos y Elementos • A-Frame</title>
-    <meta name="description" content="Visualización 3D de estructura con nodos y elementos conectados">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Estructura de Nodos AR • A-Frame</title>
+    <meta name="description" content="Visualización 3D/AR de estructura con nodos y elementos conectados">
+    
+    <!-- A-Frame core -->
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+    
+    <!-- A-Frame AR.js para realidad aumentada -->
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.js"></script>
+    
     <style>
       body {
         margin: 0;
         font-family: Arial, sans-serif;
+        overflow: hidden; /* Importante para AR */
       }
+      
       .info {
         position: absolute;
         top: 10px;
-        left: 10px;
-        background: rgba(0,0,0,0.8);
-        color: white;
-        padding: 15px;
-        border-radius: 5px;
-        font-size: 12px;
-        z-index: 1000;
-        max-width: 300px;
-      }
-      .controls {
-        position: absolute;
-        bottom: 10px;
         left: 10px;
         background: rgba(0,0,0,0.8);
         color: white;
@@ -32,51 +29,136 @@
         border-radius: 5px;
         font-size: 11px;
         z-index: 1000;
+        max-width: 250px;
+        backdrop-filter: blur(5px);
       }
+      
+      .controls {
+        position: absolute;
+        bottom: 60px;
+        left: 10px;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 8px;
+        border-radius: 5px;
+        font-size: 10px;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+      }
+      
       .deformation-control {
         position: absolute;
         top: 10px;
         right: 10px;
         background: rgba(0,0,0,0.8);
         color: white;
-        padding: 15px;
+        padding: 10px;
         border-radius: 5px;
-        font-size: 12px;
+        font-size: 11px;
         z-index: 1000;
         text-align: center;
+        backdrop-filter: blur(5px);
       }
+      
       .deformation-control button {
-        padding: 10px 20px;
+        padding: 8px 16px;
         background: #4488ff;
         color: white;
         border: none;
         border-radius: 5px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 12px;
         font-weight: bold;
         transition: all 0.3s ease;
+        touch-action: manipulation; /* Mejor para móviles */
       }
-      .deformation-control button:hover {
+      
+      .deformation-control button:hover,
+      .deformation-control button:active {
         transform: scale(1.05);
         box-shadow: 0 4px 8px rgba(0,0,0,0.3);
       }
+      
+      .mode-selector {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 11px;
+        z-index: 1000;
+        text-align: center;
+        backdrop-filter: blur(5px);
+      }
+      
+      .mode-selector button {
+        padding: 8px 12px;
+        margin: 2px;
+        background: #44ff44;
+        color: black;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: bold;
+        touch-action: manipulation;
+      }
+      
+      .mode-selector button.active {
+        background: #ffff44;
+        color: black;
+      }
+      
       .debug-info {
-        margin-top: 10px;
-        font-size: 10px;
+        margin-top: 8px;
+        font-size: 9px;
         color: #ccc;
-        max-height: 150px;
+        max-height: 120px;
         overflow-y: auto;
+      }
+      
+      /* Ocultar elementos en modo AR para mejor experiencia */
+      .ar-mode .info,
+      .ar-mode .controls {
+        opacity: 0.7;
+        font-size: 10px;
+      }
+      
+      /* Indicador de carga */
+      .loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 20px;
+        border-radius: 10px;
+        z-index: 2000;
+        text-align: center;
+        display: none;
+      }
+      
+      .loading.show {
+        display: block;
       }
     </style>
   </head>
   <body>
+    
+    <div id="loading" class="loading">
+      <h3>Iniciando cámara...</h3>
+      <p>Permite el acceso a la cámara para AR</p>
+    </div>
+    
     <div class="info">
-      <h3>Estructura de Nodos y Elementos</h3>
+      <h3>Estructura de Nodos AR</h3>
       <p><strong>Nodos:</strong> 8 (esferas rojas)</p>
       <p><strong>Elementos:</strong> 8 (líneas azules)</p>
-      <p><strong>Escala:</strong> 0.3 (30% del tamaño original)</p>
-      <p><strong>Dimensiones escaladas:</strong> 2.4m × 1.8m</p>
-      <p><strong>Amplificación:</strong> 50,000x</p>
+      <p><strong>Escala:</strong> 0.3 (30% del tamaño)</p>
+      <p id="mode-info"><strong>Modo:</strong> 3D Normal</p>
       <div id="debug-info" class="debug-info">
         <strong>Debug:</strong> Presiona el botón para ver deformaciones...
       </div>
@@ -84,25 +166,56 @@
     
     <div class="deformation-control">
       <button id="btn-deformacion">Mostrar Deformada</button>
-      <p><small>Los desplazamientos están amplificados para visualización</small></p>
+      <p><small>Desplazamientos amplificados 5000x</small></p>
+    </div>
+    
+    <div class="mode-selector">
+      <p><strong>Modo de Vista:</strong></p>
+      <button id="btn-3d" class="active">3D Normal</button>
+      <button id="btn-ar">AR Cámara</button>
     </div>
     
     <div class="controls">
-      <strong>Controles:</strong><br>
-      Mouse: Rotar vista | WASD: Moverse | VR: Botón inferior derecho
+      <strong id="controls-text">Controles 3D:</strong><br>
+      <span id="controls-desc">Toca y arrastra: Rotar | Pellizca: Zoom</span>
     </div>
 
-    <a-scene background="color: #f0f0f0" cursor="rayOrigin: mouse">
+    <!-- Escena A-Frame con soporte AR -->
+    <a-scene 
+      id="main-scene"
+      embedded 
+      arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+      background="color: #f0f0f0"
+      cursor="rayOrigin: mouse"
+      device-orientation-permission-ui="enabled: false"
+      loading-screen="enabled: false"
+      vr-mode-ui="enabled: false">
+      
+      <!-- Marker AR (solo visible en modo AR) -->
+      <a-marker 
+        id="ar-marker"
+        preset="hiro" 
+        smooth="true" 
+        smoothCount="10" 
+        smoothTolerance="0.01" 
+        smoothThreshold="5"
+        visible="false">
+        
+        <!-- La estructura se colocará aquí en modo AR -->
+        <a-entity id="estructura-ar" visible="false"></a-entity>
+        
+      </a-marker>
       
       <!-- Iluminación -->
       <a-light type="ambient" color="#404040"></a-light>
       <a-light type="directional" position="2 4 2" color="#ffffff" intensity="0.8"></a-light>
       
-      <!-- Entidad principal que contiene toda la estructura -->
+      <!-- Entidad principal para modo 3D normal -->
       <a-entity id="estructura-principal">
         
-        <!-- Plano de referencia (suelo) -->
-        <a-plane position="4 -1 0" 
+        <!-- Plano de referencia (suelo) - Solo en modo 3D -->
+        <a-plane id="suelo" 
+                 position="4 -1 0" 
                  rotation="-90 0 0" 
                  width="12" 
                  height="8" 
@@ -110,7 +223,7 @@
                  opacity="0.7"
                  shadow="receive: true"></a-plane>
         
-        <!-- Grid de referencia -->
+        <!-- Grid de referencia - Solo en modo 3D -->
         <a-entity id="grid">
           <!-- Líneas verticales -->
           <a-cylinder position="0 3 -0.1" radius="0.05" height="6" color="#cccccc" opacity="0.3"></a-cylinder>
@@ -195,11 +308,9 @@
           <a-text value="8" position="0 1 0" align="center" color="#000" scale="4 4 4"></a-text>
         </a-sphere>
 
-        <!-- ELEMENTOS (Líneas conectando nodos) -->
-        <!-- Las líneas se crearán dinámicamente en JavaScript para seguir a los nodos -->
-
         <!-- Texto informativo en 3D -->
-        <a-text position="4 8 0" 
+        <a-text id="titulo-3d"
+                position="4 8 0" 
                 value="Estructura de Nodos y Elementos" 
                 align="center" 
                 color="#333333" 
@@ -222,53 +333,59 @@
         </a-entity>
       </a-entity>
       
-      <!-- Cámara posicionada dinámicamente -->
-      <a-camera id="camara-principal" wasd-controls="acceleration: 5"></a-camera>
+      <!-- Cámara para modo 3D normal -->
+      <a-camera id="camara-principal" 
+                wasd-controls="acceleration: 5"
+                look-controls="enabled: true; touchEnabled: true"
+                cursor="rayOrigin: mouse"></a-camera>
+                
+      <!-- Cámara AR (se activa automáticamente en modo AR) -->
+      <a-entity id="camara-ar" camera visible="false"></a-entity>
     </a-scene>
 
     <script>
-      // ESCALA DE LA ESTRUCTURA - Cambiar aquí para escalar toda la estructura
-      const ESCALA = 0.3; // Factor de escala (0.3 = 30% del tamaño original)
+      // ESCALA DE LA ESTRUCTURA
+      const ESCALA = 0.3;
+      const ESCALA_AR = 0.05; // Escala más pequeña para AR
       
-      // Datos de desplazamientos (X, Y en metros, Rotación en radianes)
-      // Copiados exactamente del código Unity Vector3[] nodeDisplacements
-      const desplazamientos = [
-        {x: 0, y: 0, rot: 0}, // Nodo 1 - new Vector3(0f, 0f, 0f)
-        {x: -0.000214334467084222, y: -2.92585497916779e-05, rot: 0.000299282917049326}, // Nodo 2
-        {x: -4.51228548254704e-05, y: -5.91445463001043e-05, rot: -0.00125414567113917}, // Nodo 3
-        {x: -5.26077882706616e-05, y: -7.62472910434113e-05, rot: 0.00121519336768121}, // Nodo 4
-        {x: -0.000205459371218351, y: -4.61332875518377e-05, rot: -0.000475039410395658}, // Nodo 5
-        {x: 0, y: 0, rot: 0}, // Nodo 6 - new Vector3(0f, 0f, 0f)
-        {x: -0.000209509318349148, y: -1.46081626564844e-05, rot: 0.000595291931114151}, // Nodo 7
-        {x: 0, y: 0, rot: 0} // Nodo 8 - new Vector3(0f, 0f, 0f)
-      ];
-      
-      // Factor de amplificación para hacer visibles los desplazamientos microscópicos
-      const FACTOR_AMPLIFICACION = 5000; // 50,000x amplificación
-      
+      // Estado de la aplicación
+      let modoAR = false;
       let estructuraDeformada = false;
+      let arInitialized = false;
       
-      // Conectividad de elementos (qué nodos conecta cada elemento)
-      const conectividad = [
-        [0, 1], // Elemento 1: Nodo 1-2
-        [1, 2], // Elemento 2: Nodo 2-3
-        [2, 3], // Elemento 3: Nodo 3-4
-        [3, 4], // Elemento 4: Nodo 4-5
-        [1, 4], // Elemento 5: Nodo 2-5
-        [4, 5], // Elemento 6: Nodo 5-6
-        [4, 6], // Elemento 7: Nodo 5-7
-        [6, 7]  // Elemento 8: Nodo 7-8
+      // Datos de desplazamientos idénticos al código original
+      const desplazamientos = [
+        {x: 0, y: 0, rot: 0},
+        {x: -0.000214334467084222, y: -2.92585497916779e-05, rot: 0.000299282917049326},
+        {x: -4.51228548254704e-05, y: -5.91445463001043e-05, rot: -0.00125414567113917},
+        {x: -5.26077882706616e-05, y: -7.62472910434113e-05, rot: 0.00121519336768121},
+        {x: -0.000205459371218351, y: -4.61332875518377e-05, rot: -0.000475039410395658},
+        {x: 0, y: 0, rot: 0},
+        {x: -0.000209509318349148, y: -1.46081626564844e-05, rot: 0.000595291931114151},
+        {x: 0, y: 0, rot: 0}
       ];
       
-      // Función para crear una línea entre dos puntos
+      const FACTOR_AMPLIFICACION = 5000;
+      
+      // Conectividad de elementos
+      const conectividad = [
+        [0, 1], [1, 2], [2, 3], [3, 4], [1, 4], [4, 5], [4, 6], [6, 7]
+      ];
+      
+      // Posiciones originales
+      const posicionesOriginales = [
+        [0, 0], [0, 3], [0, 6], [4, 6], [4, 3], [4, 0], [8, 3], [8, 0]
+      ];
+      
+      let posicionesActuales = [];
+      
+      // Función para crear línea (igual que el original)
       function crearLinea(id, punto1, punto2, color = '#4488ff') {
-        // Eliminar línea existente si existe
         const lineaExistente = document.getElementById(id);
         if (lineaExistente) {
           lineaExistente.remove();
         }
         
-        // Crear nueva línea usando A-Frame line geometry
         const linea = document.createElement('a-entity');
         linea.setAttribute('id', id);
         linea.setAttribute('line', {
@@ -278,171 +395,255 @@
           opacity: 0.8
         });
         
-        // Agregar la línea a la estructura principal
-        const estructura = document.getElementById('estructura-principal');
+        const estructura = modoAR ? 
+          document.getElementById('estructura-ar') : 
+          document.getElementById('estructura-principal');
         estructura.appendChild(linea);
-        
-        console.log(`Línea ${id} creada: [${punto1.x.toFixed(2)}, ${punto1.y.toFixed(2)}] -> [${punto2.x.toFixed(2)}, ${punto2.y.toFixed(2)}]`);
       }
       
-      // Función para actualizar todas las líneas
+      // Función para actualizar líneas
       function actualizarLineas() {
-        console.log('Actualizando todas las líneas...');
-        
         for (let i = 0; i < conectividad.length; i++) {
           const nodo1Idx = conectividad[i][0];
           const nodo2Idx = conectividad[i][1];
           const lineaId = `linea-${i + 1}`;
           
-          // Obtener nodos
           const nodo1 = document.getElementById(`nodo-${nodo1Idx + 1}`);
           const nodo2 = document.getElementById(`nodo-${nodo2Idx + 1}`);
           
           if (nodo1 && nodo2) {
-            // Obtener posiciones reales
             const pos1 = nodo1.getAttribute('position');
             const pos2 = nodo2.getAttribute('position');
-            
-            // Crear línea
             const color = estructuraDeformada ? '#ff8844' : '#4488ff';
             crearLinea(lineaId, pos1, pos2, color);
           }
         }
       }
       
-      // Posiciones originales de los nodos (coordenadas MATLAB)
-      const posicionesOriginales = [
-        [0, 0], [0, 3], [0, 6], [4, 6], [4, 3], [4, 0], [8, 3], [8, 0]
-      ];
+      // Función para clonar estructura para AR
+      function clonarEstructuraParaAR() {
+        const estructuraPrincipal = document.getElementById('estructura-principal');
+        const estructuraAR = document.getElementById('estructura-ar');
+        
+        // Limpiar estructura AR
+        estructuraAR.innerHTML = '';
+        
+        // Clonar solo los nodos (sin grid ni suelo para AR)
+        for (let i = 1; i <= 8; i++) {
+          const nodoOriginal = document.getElementById(`nodo-${i}`);
+          if (nodoOriginal) {
+            const nodoClonado = nodoOriginal.cloneNode(true);
+            nodoClonado.id = `nodo-ar-${i}`;
+            estructuraAR.appendChild(nodoClonado);
+          }
+        }
+        
+        // Aplicar escala AR
+        estructuraAR.setAttribute('scale', `${ESCALA_AR} ${ESCALA_AR} ${ESCALA_AR}`);
+        estructuraAR.setAttribute('position', '0 0 0');
+      }
       
-      // Array para almacenar posiciones actuales de los nodos
-      let posicionesActuales = [];
-      
-      // FUNCIÓN para alternar entre estructura original y deformada
+      // Función para alternar deformación (adaptada para AR)
       function toggleDeformacion() {
-        console.log('=== TOGGLE DEFORMACIÓN ===');
         estructuraDeformada = !estructuraDeformada;
         const boton = document.getElementById('btn-deformacion');
         const debugInfo = document.getElementById('debug-info');
         
-        console.log(`Estado: ${estructuraDeformada ? 'DEFORMADA' : 'ORIGINAL'}`);
-        console.log(`Factor de amplificación: ${FACTOR_AMPLIFICACION}x`);
-        
         let debugText = `<strong>Estado:</strong> ${estructuraDeformada ? 'DEFORMADA' : 'ORIGINAL'}<br>`;
+        debugText += `<strong>Modo:</strong> ${modoAR ? 'AR' : '3D'}<br>`;
         debugText += `<strong>Amplificación:</strong> ${FACTOR_AMPLIFICACION}x<br><br>`;
         
-        // Reinicializar array de posiciones actuales
         posicionesActuales = [];
         
+        // Obtener prefijo según el modo
+        const prefijo = modoAR ? 'nodo-ar-' : 'nodo-';
+        
         for (let i = 0; i < 8; i++) {
-          const nodo = document.getElementById(`nodo-${i + 1}`);
+          const nodo = document.getElementById(`${prefijo}${i + 1}`);
           
           if (nodo) {
             let x, y;
             
             if (estructuraDeformada) {
-              // Aplicar desplazamientos amplificados
               const desplX = desplazamientos[i].x * FACTOR_AMPLIFICACION;
               const desplY = desplazamientos[i].y * FACTOR_AMPLIFICACION;
               x = posicionesOriginales[i][0] + desplX;
               y = posicionesOriginales[i][1] + desplY;
-              const rotZ = desplazamientos[i].rot * (180 / Math.PI) * FACTOR_AMPLIFICACION; // rad to deg
+              const rotZ = desplazamientos[i].rot * (180 / Math.PI) * FACTOR_AMPLIFICACION;
               
-              console.log(`NODO ${i + 1}:`);
-              console.log(`  Unity: [${desplazamientos[i].x}, ${desplazamientos[i].y}, ${desplazamientos[i].rot}]`);
-              console.log(`  Amplificado: [${desplX.toFixed(3)}, ${desplY.toFixed(3)}, ${rotZ.toFixed(1)}°]`);
-              console.log(`  Nueva pos: [${x.toFixed(3)}, ${y.toFixed(3)}]`);
-              
-              // Aplicar transformaciones usando A-Frame API
               nodo.setAttribute('position', {x: x, y: y, z: 0});
               nodo.setAttribute('rotation', {x: 0, y: 0, z: rotZ});
-              nodo.setAttribute('material', 'color', '#ff8844'); // Color naranja para deformada
+              nodo.setAttribute('material', 'color', '#ff8844');
               
               if (desplX !== 0 || desplY !== 0 || rotZ !== 0) {
                 debugText += `<span style="color: #ff8844;">N${i + 1}: [${x.toFixed(1)}, ${y.toFixed(1)}] rot:${rotZ.toFixed(0)}°</span><br>`;
               } else {
                 debugText += `N${i + 1}: [${x}, ${y}] sin desplazamiento<br>`;
               }
-              
             } else {
-              // Restaurar posiciones originales
               x = posicionesOriginales[i][0];
               y = posicionesOriginales[i][1];
               
               nodo.setAttribute('position', {x: x, y: y, z: 0});
               nodo.setAttribute('rotation', {x: 0, y: 0, z: 0});
-              nodo.setAttribute('material', 'color', '#ff4444'); // Color rojo original
+              nodo.setAttribute('material', 'color', '#ff4444');
               
-              console.log(`NODO ${i + 1} restaurado: [${x}, ${y}]`);
               debugText += `N${i + 1}: [${x}, ${y}] original<br>`;
             }
             
-            // Guardar posición actual para cálculo de elementos
             posicionesActuales[i] = {x: x, y: y};
-            
-          } else {
-            console.error(`❌ No se encontró nodo-${i + 1}`);
-            debugText += `<span style="color: #ff4444;">N${i + 1}: ERROR - No encontrado</span><br>`;
           }
         }
         
-        // Actualizar líneas después de mover nodos
+        // Actualizar líneas
         setTimeout(() => {
           actualizarLineas();
-        }, 150); // Delay para que A-Frame procese las posiciones
+        }, 150);
         
-        // Actualizar info en pantalla
         if (debugInfo) {
           debugInfo.innerHTML = debugText;
         }
         
-        // Actualizar botón
         if (boton) {
           boton.textContent = estructuraDeformada ? 'Mostrar Original' : 'Mostrar Deformada';
           boton.style.backgroundColor = estructuraDeformada ? '#ff6644' : '#4488ff';
         }
-        
-        console.log(`=== ${estructuraDeformada ? 'DEFORMACIÓN APLICADA' : 'ESTRUCTURA RESTAURADA'} ===`);
       }
       
-      // Aplicar escala cuando cargue la página
+      // Función para cambiar entre modo 3D y AR
+      function cambiarModo(nuevoModoAR) {
+        const loading = document.getElementById('loading');
+        const scene = document.getElementById('main-scene');
+        const btn3D = document.getElementById('btn-3d');
+        const btnAR = document.getElementById('btn-ar');
+        const modeInfo = document.getElementById('mode-info');
+        const controlsText = document.getElementById('controls-text');
+        const controlsDesc = document.getElementById('controls-desc');
+        
+        if (nuevoModoAR === modoAR) return; // Ya estamos en ese modo
+        
+        loading.classList.add('show');
+        modoAR = nuevoModoAR;
+        
+        setTimeout(() => {
+          if (modoAR) {
+            // Activar modo AR
+            scene.setAttribute('arjs', 'sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;');
+            scene.setAttribute('embedded', true);
+            scene.setAttribute('background', 'color: transparent');
+            
+            // Ocultar elementos 3D y mostrar AR
+            document.getElementById('estructura-principal').setAttribute('visible', false);
+            document.getElementById('camara-principal').setAttribute('visible', false);
+            document.getElementById('ar-marker').setAttribute('visible', true);
+            document.getElementById('estructura-ar').setAttribute('visible', true);
+            
+            // Clonar estructura para AR
+            clonarEstructuraParaAR();
+            
+            // Actualizar UI
+            document.body.classList.add('ar-mode');
+            btn3D.classList.remove('active');
+            btnAR.classList.add('active');
+            modeInfo.innerHTML = '<strong>Modo:</strong> AR Cámara';
+            controlsText.textContent = 'Controles AR:';
+            controlsDesc.textContent = 'Apunta la cámara al marcador Hiro';
+            
+            console.log('✅ Modo AR activado');
+            
+          } else {
+            // Activar modo 3D
+            scene.removeAttribute('arjs');
+            scene.setAttribute('embedded', false);
+            scene.setAttribute('background', 'color: #f0f0f0');
+            
+            // Mostrar elementos 3D y ocultar AR
+            document.getElementById('estructura-principal').setAttribute('visible', true);
+            document.getElementById('camara-principal').setAttribute('visible', true);
+            document.getElementById('ar-marker').setAttribute('visible', false);
+            document.getElementById('estructura-ar').setAttribute('visible', false);
+            
+            // Actualizar UI
+            document.body.classList.remove('ar-mode');
+            btn3D.classList.add('active');
+            btnAR.classList.remove('active');
+            modeInfo.innerHTML = '<strong>Modo:</strong> 3D Normal';
+            controlsText.textContent = 'Controles 3D:';
+            controlsDesc.textContent = 'Toca y arrastra: Rotar | Pellizca: Zoom';
+            
+            console.log('✅ Modo 3D activado');
+          }
+          
+          // Actualizar líneas para el nuevo modo
+          setTimeout(() => {
+            actualizarLineas();
+            loading.classList.remove('show');
+          }, 500);
+          
+        }, 100);
+      }
+      
+      // Inicialización cuando se carga la página
       window.addEventListener('DOMContentLoaded', function() {
         const estructura = document.getElementById('estructura-principal');
         const camara = document.getElementById('camara-principal');
         const boton = document.getElementById('btn-deformacion');
+        const btn3D = document.getElementById('btn-3d');
+        const btnAR = document.getElementById('btn-ar');
         
-        // Configurar event listener del botón
+        // Configurar event listeners
         if (boton) {
           boton.addEventListener('click', toggleDeformacion);
-          console.log('✅ Botón de deformación configurado');
         }
         
-        // Crear líneas iniciales
-        setTimeout(() => {
-          actualizarLineas();
-        }, 500); // Delay inicial para que todo esté cargado
+        if (btn3D) {
+          btn3D.addEventListener('click', () => cambiarModo(false));
+        }
         
-        // Aplicar la escala a la estructura
+        if (btnAR) {
+          btnAR.addEventListener('click', () => cambiarModo(true));
+        }
+        
+        // Aplicar escala inicial
         estructura.setAttribute('scale', `${ESCALA} ${ESCALA} ${ESCALA}`);
         
-        // Calcular posición de cámara basada en la escala
+        // Configurar cámara 3D
         const Lv1 = 3, Lh1 = 4;
         const dimensionX = Lh1 * 2 * ESCALA;
         const dimensionY = Lv1 * 2 * ESCALA;
         const centroX = dimensionX / 2;
         const centroY = dimensionY / 2;
-        
-        // Ajustar cámara para vista desde arriba y lejos
         const distanciaOptima = Math.max(dimensionX, dimensionY) * 3;
         const alturaOptima = dimensionY * 1.5;
         
         camara.setAttribute('position', `${centroX} ${alturaOptima} ${distanciaOptima}`);
         camara.setAttribute('look-at', `${centroX} ${centroY} 0`);
         
-        console.log(`Escala aplicada: ${ESCALA}`);
-        console.log(`Dimensiones escaladas: ${dimensionX.toFixed(3)} x ${dimensionY.toFixed(3)}`);
-        console.log(`Posición cámara: [${centroX.toFixed(3)}, ${alturaOptima.toFixed(3)}, ${distanciaOptima.toFixed(3)}]`);
-        console.log('🚀 Sistema de deformación listo');
+        // Crear líneas iniciales
+        setTimeout(() => {
+          actualizarLineas();
+        }, 500);
+        
+        console.log('🚀 Sistema AR/3D listo');
+      });
+      
+      // Detectar cuando AR se inicializa
+      document.addEventListener('DOMContentLoaded', function() {
+        const scene = document.getElementById('main-scene');
+        
+        scene.addEventListener('arjs-video-loaded', function() {
+          console.log('📹 Cámara AR cargada');
+          arInitialized = true;
+        });
+        
+        scene.addEventListener('markerFound', function() {
+          console.log('🎯 Marcador AR detectado');
+          document.getElementById('estructura-ar').setAttribute('visible', true);
+        });
+        
+        scene.addEventListener('markerLost', function() {
+          console.log('❌ Marcador AR perdido');
+        });
       });
     </script>
   </body>
