@@ -364,16 +364,65 @@
         50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
       }
       
-      .ar-cursor::before {
-        content: '';
+      .debug-panel {
         position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 4px;
-        height: 4px;
-        background: #00ff00;
+        top: 200px;
+        left: 10px;
+        background: rgba(0,0,0,0.9);
+        color: #00ff00;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 10px;
+        z-index: 1200;
+        max-width: 280px;
+        font-family: monospace;
+        border: 1px solid #00ff00;
+        display: none;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      
+      .debug-panel.show {
+        display: block;
+      }
+      
+      .debug-panel .log-entry {
+        margin: 2px 0;
+        padding: 2px;
+        border-left: 2px solid #00ff00;
+        padding-left: 5px;
+      }
+      
+      .debug-panel .log-error {
+        color: #ff4444;
+        border-left-color: #ff4444;
+      }
+      
+      .debug-panel .log-success {
+        color: #44ff44;
+        border-left-color: #44ff44;
+      }
+      
+      .debug-panel .log-info {
+        color: #4444ff;
+        border-left-color: #4444ff;
+      }
+      
+      .debug-toggle {
+        position: absolute;
+        top: 120px;
+        right: 10px;
+        background: rgba(0,255,0,0.8);
+        color: black;
+        padding: 8px 12px;
+        border: none;
         border-radius: 50%;
-        transform: translate(-50%, -50%);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+        z-index: 1300;
+        width: 50px;
+        height: 50px;
       }
     </style>
   </head>
@@ -413,6 +462,16 @@
       <p><small><strong>Nota:</strong> Toca fuera de estos botones azules</small></p>
       <button onclick="cerrarInstrucciones()">¡Entendido!</button>
       <button onclick="colocarEstructuraManual()" style="background: #ff6600; margin-left: 10px;">🎯 Colocar Ahora</button>
+    </div>
+    
+    <button id="debug-toggle" class="debug-toggle" onclick="toggleDebug()">🐛</button>
+    
+    <div id="debug-panel" class="debug-panel">
+      <div style="border-bottom: 1px solid #00ff00; margin-bottom: 5px; padding-bottom: 3px;">
+        <strong>🐛 DEBUG PANEL</strong>
+        <button onclick="clearDebugLog()" style="float: right; background: #ff4444; color: white; border: none; border-radius: 3px; padding: 2px 6px; font-size: 9px;">Limpiar</button>
+      </div>
+      <div id="debug-log"></div>
     </div>
     
     <div id="ar-cursor" class="ar-cursor"></div>
@@ -556,17 +615,67 @@
 
     <script>
       // CONFIGURACIÓN
-      const ESCALA = 1;
-      const ESCALA_AR = 1;
+      const ESCALA = 0.3;
+      const ESCALA_AR = 0.1;
       
-      // Estado de la aplicación
-      let modoAR = false;
-      let estructuraDeformada = false;
-      let estructuraColocada = false;
-      let arInitialized = false;
-      let cameraStream = null;
-      let estructuraAR = null;
-      let arMethod = 'simple'; // 'simple' o 'webxr'
+      // Sistema de debug visual
+      let debugLog = [];
+      let debugVisible = false;
+      
+      function logDebug(mensaje, tipo = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        const entry = `[${timestamp}] ${mensaje}`;
+        debugLog.push({ entry, tipo });
+        
+        // Limitar a 50 entradas
+        if (debugLog.length > 50) {
+          debugLog.shift();
+        }
+        
+        // También log normal para consola
+        console.log(entry);
+        
+        // Actualizar panel visual si está visible
+        if (debugVisible) {
+          actualizarDebugPanel();
+        }
+      }
+      
+      function actualizarDebugPanel() {
+        const debugLogDiv = document.getElementById('debug-log');
+        if (!debugLogDiv) return;
+        
+        debugLogDiv.innerHTML = debugLog.map(item => 
+          `<div class="log-entry log-${item.tipo}">${item.entry}</div>`
+        ).join('');
+        
+        // Scroll al final
+        debugLogDiv.scrollTop = debugLogDiv.scrollHeight;
+      }
+      
+      function toggleDebug() {
+        debugVisible = !debugVisible;
+        const panel = document.getElementById('debug-panel');
+        const button = document.getElementById('debug-toggle');
+        
+        if (debugVisible) {
+          panel.classList.add('show');
+          button.textContent = '❌';
+          button.style.background = 'rgba(255,0,0,0.8)';
+          actualizarDebugPanel();
+          logDebug('Debug panel activado', 'success');
+        } else {
+          panel.classList.remove('show');
+          button.textContent = '🐛';
+          button.style.background = 'rgba(0,255,0,0.8)';
+        }
+      }
+      
+      function clearDebugLog() {
+        debugLog = [];
+        actualizarDebugPanel();
+        logDebug('Log limpiado', 'info');
+      }
       
       // Datos de desplazamientos
       const desplazamientos = [
@@ -807,30 +916,42 @@
         }
       }
       
+      // Estado de la aplicación
+      let modoAR = false;
+      let estructuraDeformada = false;
+      let estructuraColocada = false;
+      let arInitialized = false;
+      let cameraStream = null;
+      let estructuraAR = null;
+      let arMethod = 'simple'; // 'simple' o 'webxr'
+      
       // Función para manejar toques en AR
       function manejarToqueAR(event) {
+        logDebug(`🎯 Evento recibido: ${event.type}`, 'info');
+        logDebug(`📊 Estados: AR=${modoAR}, Colocada=${estructuraColocada}, Init=${arInitialized}`, 'info');
+        
         if (!modoAR || estructuraColocada || !arInitialized) {
-          console.log('❌ Toque ignorado:', { modoAR, estructuraColocada, arInitialized });
+          logDebug(`❌ Toque ignorado - AR:${modoAR} Colocada:${estructuraColocada} Init:${arInitialized}`, 'error');
           return;
         }
         
         event.preventDefault();
         event.stopPropagation();
         
-        console.log('👆 Toque detectado en AR - procesando...');
+        logDebug('👆 Procesando toque válido...', 'success');
         
         // Calcular posición del toque
         let clientX, clientY;
         if (event.type === 'touchstart' && event.touches && event.touches.length > 0) {
           clientX = event.touches[0].clientX;
           clientY = event.touches[0].clientY;
-          console.log('📱 Toque táctil:', clientX, clientY);
+          logDebug(`📱 Toque táctil: (${clientX}, ${clientY})`, 'info');
         } else if (event.type === 'click') {
           clientX = event.clientX;
           clientY = event.clientY;
-          console.log('🖱️ Click de mouse:', clientX, clientY);
+          logDebug(`🖱️ Click: (${clientX}, ${clientY})`, 'info');
         } else {
-          console.log('❓ Evento no reconocido:', event.type);
+          logDebug(`❓ Tipo evento desconocido: ${event.type}`, 'error');
           return;
         }
         
@@ -839,7 +960,7 @@
         const x = ((clientX - rect.left) / rect.width) * 2 - 1;
         const y = -((clientY - rect.top) / rect.height) * 2 + 1;
         
-        console.log('📍 Coordenadas normalizadas:', x, y);
+        logDebug(`📍 Coords normalizadas: x=${x.toFixed(2)}, y=${y.toFixed(2)}`, 'info');
         
         // Colocar estructura con desplazamiento basado en el toque
         const position = {
@@ -848,15 +969,20 @@
           z: -1.2      // Un poco más lejos para mejor visualización
         };
         
-        console.log('🎯 Posición calculada:', position);
+        logDebug(`🎯 Posición calculada: (${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)})`, 'success');
         colocarEstructura(position);
       }
       
       // Función global para colocación manual (botón de emergencia)
       function colocarEstructuraManual() {
-        if (!modoAR || estructuraColocada) return;
+        logDebug('🔧 Colocación manual iniciada', 'info');
         
-        console.log('🔧 Colocación manual activada');
+        if (!modoAR || estructuraColocada) {
+          logDebug(`❌ Colocación manual bloqueada - AR:${modoAR}, Colocada:${estructuraColocada}`, 'error');
+          return;
+        }
+        
+        logDebug('✅ Ejecutando colocación manual...', 'success');
         const position = { x: 0, y: -0.2, z: -1.2 };
         colocarEstructura(position);
       }
@@ -907,15 +1033,22 @@
       
       // Función para colocar estructura en posición específica
       function colocarEstructura(position) {
-        if (estructuraColocada) return;
+        logDebug('🏗️ Iniciando colocación de estructura...', 'info');
         
-        console.log('🎯 Colocando estructura en:', position);
+        if (estructuraColocada) {
+          logDebug('❌ Estructura ya colocada, ignorando', 'error');
+          return;
+        }
+        
+        logDebug(`📍 Colocando en posición: (${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)})`, 'info');
         
         // Crear contenedor de estructura AR
         estructuraAR = document.createElement('a-entity');
         estructuraAR.id = 'estructura-ar';
         estructuraAR.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
         estructuraAR.setAttribute('scale', `${ESCALA_AR} ${ESCALA_AR} ${ESCALA_AR}`);
+        
+        logDebug('📦 Contenedor de estructura creado', 'success');
         
         // Crear plano base semitransparente
         const planoBase = document.createElement('a-plane');
@@ -927,6 +1060,8 @@
         planoBase.setAttribute('opacity', '0.2');
         planoBase.setAttribute('transparent', true);
         estructuraAR.appendChild(planoBase);
+        
+        logDebug('⬜ Plano base agregado', 'info');
         
         // Crear nodos AR
         for (let i = 0; i < 8; i++) {
@@ -950,12 +1085,17 @@
           nodo.appendChild(texto);
           
           estructuraAR.appendChild(nodo);
+          logDebug(`🔴 Nodo ${i+1} creado en (${posicionesOriginales[i][0]}, ${posicionesOriginales[i][1]})`, 'info');
         }
         
         // Agregar estructura a la escena
         const scene = document.querySelector('a-scene');
         if (scene) {
           scene.appendChild(estructuraAR);
+          logDebug('✅ Estructura agregada a la escena', 'success');
+        } else {
+          logDebug('❌ No se encontró la escena A-Frame', 'error');
+          return;
         }
         
         estructuraColocada = true;
@@ -967,17 +1107,21 @@
         document.getElementById('deform-status').textContent = '¡Listo para deformar!';
         document.getElementById('reset-button').classList.add('show');
         
+        logDebug('🎮 UI actualizada - controles habilitados', 'success');
+        
         // Crear líneas después de un momento
         setTimeout(() => {
           actualizarLineas();
+          logDebug('🔗 Líneas de conexión creadas', 'success');
         }, 500);
         
         // Pequeña animación de confirmación
         if (estructuraAR) {
           estructuraAR.setAttribute('animation', 'property: scale; from: 0.1 0.1 0.1; to: ' + ESCALA_AR + ' ' + ESCALA_AR + ' ' + ESCALA_AR + '; dur: 800; easing: easeOutBack');
+          logDebug('🎬 Animación de colocación iniciada', 'info');
         }
         
-        console.log('✅ Estructura AR colocada exitosamente');
+        logDebug('🎉 Estructura AR colocada exitosamente!', 'success');
       }
       
       // Función para resetear estructura
@@ -1274,6 +1418,8 @@
       window.cerrarInstrucciones = cerrarInstrucciones;
       window.resetearEstructura = resetearEstructura;
       window.colocarEstructuraManual = colocarEstructuraManual;
+      window.toggleDebug = toggleDebug;
+      window.clearDebugLog = clearDebugLog;
       
       // Variables globales para debug
       window.modoAR = false;
@@ -1282,4 +1428,3 @@
     </script>
   </body>
 </html>
-
