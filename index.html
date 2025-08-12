@@ -297,7 +297,7 @@
         display: block;
       }
       
-      /* OVERLAY PRINCIPAL PARA CAPTURAR TOQUES - SOLUCION PRINCIPAL */
+      /* OVERLAY PRINCIPAL PARA CAPTURAR TOQUES */
       .ar-touch-overlay {
         position: fixed !important;
         top: 0 !important;
@@ -652,7 +652,7 @@
     <script>
       // CONFIGURACIÓN GLOBAL
       const ESCALA = 3;
-      const ESCALA_AR = 1.5;
+      const ESCALA_AR = 0.3; // CAMBIO CLAVE: Escala mucho más pequeña para AR
       
       // Estado de la aplicación
       let modoAR = false;
@@ -752,26 +752,15 @@
         logDebug('🔧 Configurando detección de toques...', 'info');
         
         // Configurar múltiples tipos de eventos para máxima compatibilidad
-        const eventos = [
-          'touchstart',
-          'touchend', 
-          'mousedown',
-          'mouseup',
-          'click',
-          'pointerdown',
-          'pointerup'
-        ];
+        const eventos = ['touchstart', 'click', 'pointerdown'];
         
         let eventosConfigurados = 0;
         
         eventos.forEach(evento => {
           try {
             touchOverlay.addEventListener(evento, function(e) {
-              // Solo procesar eventos principales que indican intención de toque
-              if (evento === 'touchstart' || evento === 'click' || evento === 'pointerdown') {
-                logDebug(`🎯 Evento ${evento} capturado por overlay`, 'success');
-                procesarToqueAR(e);
-              }
+              logDebug(`🎯 Evento ${evento} capturado`, 'success');
+              procesarToqueAR(e);
             }, {
               passive: false,
               capture: true
@@ -783,56 +772,25 @@
         });
         
         logDebug(`✅ ${eventosConfigurados} eventos configurados`, 'success');
-        
-        // Prevenir comportamientos por defecto que interfieren
-        try {
-          touchOverlay.addEventListener('touchmove', e => {
-            e.preventDefault();
-            logDebug('🚫 touchmove prevenido', 'info');
-          }, { passive: false });
-          
-          touchOverlay.addEventListener('gesturestart', e => {
-            e.preventDefault();
-            logDebug('🚫 gesturestart prevenido', 'info');
-          }, { passive: false });
-          
-          logDebug('✅ Prevención de gestos configurada', 'success');
-        } catch (error) {
-          logDebug(`⚠️ Error configurando prevención: ${error.message}`, 'warning');
-        }
-        
-        // Verificar configuración final
-        logDebug(`🎯 Overlay configurado:`, 'info');
-        logDebug(`   - ID: ${touchOverlay.id}`, 'info');
-        logDebug(`   - Clase: ${touchOverlay.className}`, 'info');
-        logDebug(`   - Z-index: ${getComputedStyle(touchOverlay).zIndex}`, 'info');
-        logDebug(`   - Pointer events: ${getComputedStyle(touchOverlay).pointerEvents}`, 'info');
-        
-        logDebug('🎉 Sistema de detección de toques COMPLETAMENTE configurado', 'success');
         return true;
       }
       
       // FUNCIÓN PARA PROCESAR TOQUES EN AR
       function procesarToqueAR(event) {
         logDebug('🎯 TOQUE DETECTADO! Procesando...', 'success');
-        logDebug(`📊 Estado actual: AR=${modoAR}, Colocada=${estructuraColocada}, Init=${arInitialized}`, 'info');
-        logDebug(`🎮 Overlay activo: ${touchOverlay?.classList.contains('active')}`, 'info');
         
-        // Mostrar SIEMPRE feedback visual para confirmar detección
+        // Mostrar feedback visual
         let x = window.innerWidth / 2;
         let y = window.innerHeight / 2;
         
         if (event.type === 'touchstart' && event.touches && event.touches.length > 0) {
           x = event.touches[0].clientX;
           y = event.touches[0].clientY;
-          logDebug(`👆 Toque táctil en (${x}, ${y})`, 'success');
         } else if (event.clientX !== undefined && event.clientY !== undefined) {
           x = event.clientX;
           y = event.clientY;
-          logDebug(`🖱️ Click en (${x}, ${y})`, 'success');
         }
         
-        // SIEMPRE mostrar feedback visual
         mostrarFeedbackToque(x, y);
         
         // Prevenir comportamiento por defecto
@@ -840,47 +798,35 @@
           event.preventDefault();
           event.stopPropagation();
           event.stopImmediatePropagation();
-          logDebug('✅ Eventos preventos correctamente', 'success');
         } catch (e) {
           logDebug(`⚠️ Error previniendo eventos: ${e.message}`, 'warning');
         }
         
-        // Verificaciones de estado CON LOGS DETALLADOS
+        // Verificaciones de estado
         if (!modoAR) {
-          logDebug('❌ BLOQUEADO: No estamos en modo AR', 'error');
-          logDebug('💡 Solución: Activa el modo AR primero', 'info');
+          logDebug('❌ No estamos en modo AR', 'error');
           return;
         }
         
         if (estructuraColocada) {
-          logDebug('❌ BLOQUEADO: Estructura ya colocada', 'warning');
-          logDebug('💡 Solución: Usa el botón Reset para recolocar', 'info');
+          logDebug('❌ Estructura ya colocada', 'warning');
           return;
         }
         
         if (!arInitialized) {
-          logDebug('❌ BLOQUEADO: AR no inicializado', 'error');
-          logDebug('💡 Estado AR: Permite la cámara y espera inicialización', 'info');
+          logDebug('❌ AR no inicializado', 'error');
           return;
         }
         
-        // SI LLEGAMOS AQUÍ, TODO ESTÁ BIEN
-        logDebug('🚀 ¡TODAS LAS VALIDACIONES PASARON! Colocando estructura...', 'success');
+        logDebug('🚀 Todas las validaciones pasaron! Colocando estructura...', 'success');
         
-        // Calcular posición 3D
-        const screenX = ((x / window.innerWidth) * 2 - 1) * 1.0;
-        const screenY = -((y / window.innerHeight) * 2 - 1) * 0.5;
-        const screenZ = -1.5;
-        
+        // Calcular posición 3D más cercana a la cámara
         const posicion = {
-          x: screenX,
-          y: screenY + 0.2, // Ajuste de altura
-          z: screenZ
+          x: 0,
+          y: 0,
+          z: -2  // CAMBIO CLAVE: Más cerca de la cámara
         };
         
-        logDebug(`📍 Posición calculada: (${posicion.x.toFixed(2)}, ${posicion.y.toFixed(2)}, ${posicion.z.toFixed(2)})`, 'success');
-        
-        // Colocar estructura inmediatamente
         colocarEstructuraAR(posicion);
       }
       
@@ -948,7 +894,6 @@
           cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
           logDebug('✅ Permisos de cámara obtenidos', 'success');
           
-          // Inicializar AR
           await inicializarAR();
           
         } catch (error) {
@@ -1002,43 +947,23 @@
           
           document.body.appendChild(video);
           
-          // Crear nueva escena AR
-          const arScene = document.createElement('a-scene');
-          arScene.id = 'ar-scene';
-          arScene.setAttribute('embedded', true);
-          arScene.setAttribute('background', 'color: transparent');
-          arScene.setAttribute('loading-screen', 'enabled: false');
-          arScene.setAttribute('vr-mode-ui', 'enabled: false');
-          arScene.setAttribute('device-orientation-permission-ui', 'enabled: false');
+          // CAMBIO CLAVE: Modificar la escena existente en lugar de crear nueva
+          const scene = document.getElementById('main-scene');
+          scene.setAttribute('background', 'color: transparent');
           
-          // Deshabilitar interacciones de A-Frame con el cursor
-          arScene.setAttribute('cursor', 'rayOrigin: mouse; downEvents: ; upEvents: ; clickEvents: ;');
-          arScene.setAttribute('raycaster', 'far: 0; objects: .no-interactions');
+          // Ocultar elementos 3D existentes
+          const estructura3D = document.getElementById('estructura-principal');
+          if (estructura3D) {
+            estructura3D.setAttribute('visible', 'false');
+          }
           
-          // Agregar cámara AR
-          const camera = document.createElement('a-entity');
-          camera.setAttribute('camera', 'active: true; fov: 70;');
-          camera.setAttribute('position', '0 1.6 0');
-          camera.setAttribute('look-controls', 'enabled: false');
-          camera.setAttribute('wasd-controls', 'enabled: false');
-          arScene.appendChild(camera);
-          
-          // Agregar luces
-          const ambientLight = document.createElement('a-light');
-          ambientLight.setAttribute('type', 'ambient');
-          ambientLight.setAttribute('color', '#777777');
-          arScene.appendChild(ambientLight);
-          
-          const directionalLight = document.createElement('a-light');
-          directionalLight.setAttribute('type', 'directional');
-          directionalLight.setAttribute('position', '0 5 5');
-          directionalLight.setAttribute('color', '#ffffff');
-          directionalLight.setAttribute('intensity', '0.8');
-          arScene.appendChild(directionalLight);
-          
-          // Reemplazar escena existente
-          const oldScene = document.getElementById('main-scene');
-          oldScene.parentNode.replaceChild(arScene, oldScene);
+          // Configurar cámara AR
+          const camera = document.getElementById('camara-principal');
+          if (camera) {
+            camera.setAttribute('look-controls', 'enabled: false');
+            camera.setAttribute('wasd-controls', 'enabled: false');
+            camera.setAttribute('position', '0 1.6 0');
+          }
           
           // Configurar sistema de toques
           configurarDeteccionToques();
@@ -1083,81 +1008,65 @@
         // Activar overlay de toque
         if (touchOverlay) {
           touchOverlay.classList.add('active');
-          logDebug('✅ Overlay de toque ACTIVADO - Ahora puedes tocar la pantalla', 'success');
-          logDebug(`🎯 Overlay clase: ${touchOverlay.className}`, 'info');
-        } else {
-          logDebug('❌ ERROR: touchOverlay no existe', 'error');
+          logDebug('✅ Overlay de toque ACTIVADO', 'success');
         }
-        
-        // Verificar estado final
-        logDebug(`📊 Estado después de cerrar instrucciones:`, 'info');
-        logDebug(`   - modoAR: ${modoAR}`, 'info');
-        logDebug(`   - arInitialized: ${arInitialized}`, 'info');
-        logDebug(`   - estructuraColocada: ${estructuraColocada}`, 'info');
-        logDebug(`   - overlay activo: ${touchOverlay?.classList.contains('active')}`, 'info');
-        
-        // Forzar actualización de estado
-        window.modoAR = modoAR;
-        window.estructuraColocada = estructuraColocada;
-        window.arInitialized = arInitialized;
         
         actualizarEstadoAR('🎯 TOCA LA PANTALLA para colocar estructura');
       }
       
       // Función para colocar estructura manualmente
       function colocarEstructuraManual() {
-        logDebug('🔧 COLOCACIÓN MANUAL FORZADA - Ignorando validaciones', 'warning');
+        logDebug('🔧 COLOCACIÓN MANUAL FORZADA', 'warning');
         
-        // Mostrar todos los estados actuales
-        logDebug(`📊 Estados antes de colocación manual:`, 'info');
-        logDebug(`   - modoAR: ${modoAR}`, 'info');
-        logDebug(`   - arInitialized: ${arInitialized}`, 'info');
-        logDebug(`   - estructuraColocada: ${estructuraColocada}`, 'info');
-        
-        // Si no estamos en AR, forzar modo AR
         if (!modoAR) {
-          logDebug('⚠️ No estábamos en AR, forzando estado AR', 'warning');
           modoAR = true;
-          window.modoAR = true;
         }
         
-        // Si AR no está inicializado, forzar inicialización
         if (!arInitialized) {
-          logDebug('⚠️ AR no inicializado, forzando estado inicializado', 'warning');
           arInitialized = true;
-          window.arInitialized = true;
         }
         
-        // Si estructura ya está colocada, limpiar primero
         if (estructuraColocada) {
-          logDebug('🗑️ Limpiando estructura existente', 'info');
           if (estructuraAR) {
             estructuraAR.remove();
             estructuraAR = null;
           }
           estructuraColocada = false;
-          window.estructuraColocada = false;
         }
         
-        logDebug('🚀 Ejecutando colocación manual en posición central...', 'success');
-        const posicion = { x: 0, y: 0, z: -1.5 };
+        const posicion = { x: 0, y: 0, z: -2 };
         colocarEstructuraAR(posicion);
       }
       
-      // Función para crear líneas entre nodos
+      // Función para crear líneas entre nodos - VERSIÓN MEJORADA
       function crearLinea(id, punto1, punto2, color = '#4488ff') {
         const lineaExistente = document.getElementById(id);
         if (lineaExistente) lineaExistente.remove();
         
-        const linea = document.createElement('a-entity');
+        // CAMBIO CLAVE: Usar a-cylinder para líneas más visibles
+        const linea = document.createElement('a-cylinder');
         linea.id = id;
-        linea.setAttribute('line', {
-          start: `${punto1.x} ${punto1.y} ${punto1.z || 0}`,
-          end: `${punto2.x} ${punto2.y} ${punto2.z || 0}`,
-          color: color,
-          linewidth: 8,
-          opacity: 0.9
-        });
+        
+        // Calcular posición central y rotación
+        const dx = punto2.x - punto1.x;
+        const dy = punto2.y - punto1.y;
+        const dz = (punto2.z || 0) - (punto1.z || 0);
+        const distancia = Math.sqrt(dx*dx + dy*dy + dz*dz);
+        
+        const centroX = (punto1.x + punto2.x) / 2;
+        const centroY = (punto1.y + punto2.y) / 2;
+        const centroZ = ((punto1.z || 0) + (punto2.z || 0)) / 2;
+        
+        // Calcular rotación
+        const rotacionY = Math.atan2(dx, dz) * (180 / Math.PI);
+        const rotacionZ = -Math.atan2(dy, Math.sqrt(dx*dx + dz*dz)) * (180 / Math.PI);
+        
+        linea.setAttribute('position', `${centroX} ${centroY} ${centroZ}`);
+        linea.setAttribute('rotation', `0 ${rotacionY} ${rotacionZ}`);
+        linea.setAttribute('radius', '0.02');
+        linea.setAttribute('height', distancia);
+        linea.setAttribute('color', color);
+        linea.setAttribute('opacity', '0.9');
         
         const contenedor = estructuraAR || document.querySelector('a-scene');
         if (contenedor) contenedor.appendChild(linea);
@@ -1182,18 +1091,14 @@
         }
       }
       
-      // FUNCIÓN PRINCIPAL PARA COLOCAR ESTRUCTURA EN AR
+      // FUNCIÓN PRINCIPAL PARA COLOCAR ESTRUCTURA EN AR - VERSIÓN MEJORADA
       function colocarEstructuraAR(posicion) {
         logDebug('🏗️ INICIANDO colocación de estructura AR...', 'success');
-        logDebug(`📍 Posición objetivo: (${posicion.x.toFixed(2)}, ${posicion.y.toFixed(2)}, ${posicion.z.toFixed(2)})`, 'info');
+        logDebug(`📍 Posición: (${posicion.x}, ${posicion.y}, ${posicion.z})`, 'info');
         
-        // Verificación final antes de colocar
-        if (estructuraColocada) {
-          logDebug('⚠️ Estructura ya colocada, limpiando primero...', 'warning');
-          if (estructuraAR) {
-            estructuraAR.remove();
-            estructuraAR = null;
-          }
+        if (estructuraColocada && estructuraAR) {
+          estructuraAR.remove();
+          estructuraAR = null;
         }
         
         try {
@@ -1203,74 +1108,55 @@
           estructuraAR.setAttribute('position', `${posicion.x} ${posicion.y} ${posicion.z}`);
           estructuraAR.setAttribute('scale', `${ESCALA_AR} ${ESCALA_AR} ${ESCALA_AR}`);
           
-          logDebug('📦 Contenedor de estructura creado', 'success');
-          
-          // Crear plano base
+          // CAMBIO CLAVE: Plano base más visible
           const plano = document.createElement('a-plane');
           plano.setAttribute('position', '4 -0.5 0');
           plano.setAttribute('rotation', '-90 0 0');
           plano.setAttribute('width', '12');
           plano.setAttribute('height', '8');
           plano.setAttribute('color', '#ffffff');
-          plano.setAttribute('opacity', '0.15');
+          plano.setAttribute('opacity', '0.3');
           plano.setAttribute('transparent', true);
+          plano.setAttribute('material', 'side: double');
           estructuraAR.appendChild(plano);
           
-          logDebug('⬜ Plano base agregado', 'success');
-          
-          // Crear nodos
-          let nodosCreados = 0;
+          // Crear nodos con mejor visibilidad
           for (let i = 0; i < 8; i++) {
-            try {
-              const nodo = document.createElement('a-sphere');
-              nodo.id = `nodo-ar-${i + 1}`;
-              nodo.setAttribute('position', `${posicionesOriginales[i][0]} ${posicionesOriginales[i][1]} 0`);
-              nodo.setAttribute('radius', '0.25');
-              nodo.setAttribute('color', '#ff4444');
-              nodo.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 15000');
-              nodo.setAttribute('shadow', 'cast: true');
-              
-              // Texto del nodo
-              const texto = document.createElement('a-text');
-              texto.setAttribute('value', (i + 1).toString());
-              texto.setAttribute('position', '0 0.7 0');
-              texto.setAttribute('align', 'center');
-              texto.setAttribute('color', '#ffffff');
-              texto.setAttribute('scale', '2.5 2.5 2.5');
-              texto.setAttribute('geometry', 'primitive: plane; width: auto; height: auto');
-              texto.setAttribute('material', 'color: #000000; transparent: true; opacity: 0.8');
-              nodo.appendChild(texto);
-              
-              estructuraAR.appendChild(nodo);
-              nodosCreados++;
-              logDebug(`🔴 Nodo ${i+1} creado`, 'success');
-            } catch (error) {
-              logDebug(`❌ Error creando nodo ${i+1}: ${error.message}`, 'error');
-            }
+            const nodo = document.createElement('a-sphere');
+            nodo.id = `nodo-ar-${i + 1}`;
+            nodo.setAttribute('position', `${posicionesOriginales[i][0]} ${posicionesOriginales[i][1]} 0`);
+            nodo.setAttribute('radius', '0.3'); // Más grande
+            nodo.setAttribute('color', '#ff4444');
+            nodo.setAttribute('material', 'metalness: 0.1; roughness: 0.3'); // Material más visible
+            nodo.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 15000');
+            
+            // Texto del nodo más visible
+            const texto = document.createElement('a-text');
+            texto.setAttribute('value', (i + 1).toString());
+            texto.setAttribute('position', '0 0.8 0');
+            texto.setAttribute('align', 'center');
+            texto.setAttribute('color', '#ffffff');
+            texto.setAttribute('scale', '3 3 3');
+            texto.setAttribute('geometry', 'primitive: plane; width: auto; height: auto');
+            texto.setAttribute('material', 'color: #000000; transparent: true; opacity: 0.9');
+            nodo.appendChild(texto);
+            
+            estructuraAR.appendChild(nodo);
           }
-          
-          logDebug(`✅ ${nodosCreados}/8 nodos creados exitosamente`, 'success');
           
           // Agregar a la escena
           const scene = document.querySelector('a-scene');
           if (scene) {
             scene.appendChild(estructuraAR);
-            logDebug('🎬 Estructura agregada a la escena A-Frame', 'success');
-          } else {
-            logDebug('❌ CRÍTICO: No se encontró la escena A-Frame', 'error');
-            return;
+            logDebug('🎬 Estructura agregada a la escena', 'success');
           }
           
-          // MARCAR COMO COLOCADA INMEDIATAMENTE
+          // MARCAR COMO COLOCADA
           estructuraColocada = true;
-          window.estructuraColocada = true;
           
-          logDebug('🎯 Variable estructuraColocada = true', 'success');
-          
-          // Desactivar overlay de toque
+          // Desactivar overlay
           if (touchOverlay) {
             touchOverlay.classList.remove('active');
-            logDebug('🚫 Overlay de toque desactivado', 'info');
           }
           
           // Actualizar UI
@@ -1278,33 +1164,26 @@
           document.getElementById('btn-deformacion').disabled = false;
           document.getElementById('deform-status').textContent = '¡Listo para deformar!';
           document.getElementById('reset-button').classList.add('show');
-          actualizarEstadoAR('✅ Estructura colocada exitosamente - Usa botones para deformar');
-          
-          logDebug('🎮 UI actualizada - botones habilitados', 'success');
+          actualizarEstadoAR('✅ Estructura colocada exitosamente');
           
           // Crear líneas después de un momento
           setTimeout(() => {
             try {
               actualizarLineas();
-              logDebug('🔗 Líneas de conexión creadas', 'success');
+              logDebug('🔗 Líneas creadas', 'success');
             } catch (error) {
               logDebug(`⚠️ Error creando líneas: ${error.message}`, 'warning');
             }
           }, 500);
           
           // Animación de aparición
-          if (estructuraAR) {
-            estructuraAR.setAttribute('animation', 
-              `property: scale; from: 0.05 0.05 0.05; to: ${ESCALA_AR} ${ESCALA_AR} ${ESCALA_AR}; dur: 1000; easing: easeOutBack`);
-            logDebug('🎬 Animación de aparición iniciada', 'success');
-          }
+          estructuraAR.setAttribute('animation', 
+            `property: scale; from: 0.05 0.05 0.05; to: ${ESCALA_AR} ${ESCALA_AR} ${ESCALA_AR}; dur: 1000; easing: easeOutBack`);
           
           logDebug('🎉 ESTRUCTURA AR COLOCADA EXITOSAMENTE!', 'success');
-          logDebug(`📊 Estado final: estructuraColocada = ${estructuraColocada}`, 'success');
           
         } catch (error) {
-          logDebug(`❌ ERROR CRÍTICO colocando estructura: ${error.message}`, 'error');
-          logDebug(`📍 Stack trace: ${error.stack}`, 'error');
+          logDebug(`❌ ERROR colocando estructura: ${error.message}`, 'error');
         }
       }
       
@@ -1331,7 +1210,6 @@
         // Reactivar overlay
         if (touchOverlay) {
           touchOverlay.classList.add('active');
-          logDebug('✅ Overlay reactivado', 'success');
         }
         
         // Actualizar UI
@@ -1342,8 +1220,6 @@
         document.getElementById('deform-status').textContent = 'Primero coloca la estructura';
         document.getElementById('reset-button').classList.remove('show');
         actualizarEstadoAR('Toca la pantalla para colocar estructura');
-        
-        logDebug('✅ Reset completado', 'success');
       }
       
       // Función para alternar deformación
@@ -1451,21 +1327,8 @@
             touchOverlay.classList.remove('active');
           }
           
-          if (document.getElementById('ar-scene')) {
-            location.reload();
-            return;
-          }
-          
-          btn3D.classList.add('active');
-          btnAR.classList.remove('active');
-          document.getElementById('mode-info').innerHTML = '<strong>Modo:</strong> 🖥️ 3D Normal';
-          document.getElementById('controls-text').textContent = '🎮 Controles 3D:';
-          document.getElementById('controls-desc').textContent = 'Arrastra: Rotar • Pellizca: Zoom';
-          
-          // Ocultar popups
-          ['permission-request', 'error-message', 'loading', 'ar-instructions', 'reset-button', 'ar-cursor'].forEach(id => {
-            document.getElementById(id).classList.remove('show');
-          });
+          // Recargar para volver al modo 3D
+          location.reload();
         }
       }
       
@@ -1546,8 +1409,6 @@
       
       // Prevenir gestos del navegador
       document.addEventListener('gesturestart', e => e.preventDefault());
-      // Prevenir gestos del navegador
-      document.addEventListener('gesturestart', e => e.preventDefault());
       document.addEventListener('touchmove', function(e) {
         if (modoAR && e.target.closest('#ar-touch-overlay')) {
           e.preventDefault();
@@ -1582,7 +1443,3 @@
       window.logDebug = logDebug;
       
       logDebug('🎯 Sistema de toques AR configurado y listo', 'success');
-    </script>
-  </body>
-</html>
-
