@@ -71,7 +71,8 @@
 
     <!-- Control Buttons -->
     <div class="control-buttons">
-        <button id="spawn-btn">Generar Estructura</button>
+        <button id="camera-btn">📷 Activar Cámara</button>
+        <button id="spawn-btn" disabled>Generar Estructura</button>
         <button id="toggle-displacement-btn" disabled>Aplicar Desplazamientos</button>
         <button id="destroy-btn" disabled>Destruir</button>
         <button id="info-btn">Info</button>
@@ -80,10 +81,11 @@
     <!-- A-Frame Scene -->
     <a-scene 
         embedded 
-        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; sourceWidth: 1280; sourceHeight: 960; displayWidth: 1280; displayHeight: 960;"
         vr-mode-ui="enabled: false"
         renderer="logarithmicDepthBuffer: true;"
-        id="ar-scene">
+        id="ar-scene"
+        background="color: #000">
         
         <!-- Assets -->
         <a-assets>
@@ -179,25 +181,12 @@
             }
             
             checkARReadiness() {
-                // Verificar estado de AR cada segundo
-                const checkInterval = setInterval(() => {
-                    const scene = document.querySelector('#ar-scene');
-                    const camera = document.querySelector('#ar-camera');
-                    
-                    if (scene && camera) {
-                        // Simular que AR está listo después de 3 segundos
-                        setTimeout(() => {
-                            this.isARReady = true;
-                            this.updateUI();
-                            clearInterval(checkInterval);
-                            
-                            // Mostrar instrucciones al usuario
-                            if (this.enableDebugLogs) {
-                                console.log('AR está listo! Puedes tocar la pantalla o usar el botón.');
-                            }
-                        }, 3000);
-                    }
-                }, 1000);
+                // En lugar de esperar automáticamente, mostrar botón para activar cámara
+                document.getElementById('status').textContent = 'Presiona "📷 Activar Cámara"';
+                
+                if (this.enableDebugLogs) {
+                    console.log('Esperando activación manual de cámara...');
+                }
             }
             
             // ========== INICIALIZACIÓN ==========
@@ -231,14 +220,22 @@
             
             setupEventListeners() {
                 const scene = document.querySelector('#ar-scene');
+                const cameraBtn = document.getElementById('camera-btn');
                 const spawnBtn = document.getElementById('spawn-btn');
                 const toggleBtn = document.getElementById('toggle-displacement-btn');
                 const destroyBtn = document.getElementById('destroy-btn');
                 const infoBtn = document.getElementById('info-btn');
                 
+                // Botón para activar cámara manualmente
+                cameraBtn.addEventListener('click', () => {
+                    this.requestCameraPermission();
+                });
+                
                 // Touch/Click en la escena
                 scene.addEventListener('click', (event) => {
-                    this.handleSceneClick(event);
+                    if (this.isARReady) {
+                        this.handleSceneClick(event);
+                    }
                 });
                 
                 // Botones de control
@@ -257,6 +254,56 @@
                 infoBtn.addEventListener('click', () => {
                     this.showDisplacementInfo();
                 });
+            }
+            
+            // Nueva función para solicitar permisos de cámara
+            async requestCameraPermission() {
+                try {
+                    if (this.enableDebugLogs) {
+                        console.log('Solicitando permisos de cámara...');
+                    }
+                    
+                    // Usar getUserMedia directamente
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { 
+                            facingMode: 'environment',
+                            width: { ideal: 1280 },
+                            height: { ideal: 960 }
+                        } 
+                    });
+                    
+                    if (this.enableDebugLogs) {
+                        console.log('✅ Permisos de cámara obtenidos');
+                    }
+                    
+                    // Detener el stream temporal
+                    stream.getTracks().forEach(track => track.stop());
+                    
+                    // Marcar AR como listo
+                    this.isARReady = true;
+                    this.updateUI();
+                    
+                    // Reinicializar A-Frame con permisos
+                    const scene = document.querySelector('#ar-scene');
+                    if (scene) {
+                        scene.setAttribute('arjs', 'sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3; sourceWidth: 1280; sourceHeight: 960; displayWidth: 1280; displayHeight: 960;');
+                    }
+                    
+                } catch (error) {
+                    console.error('❌ Error al acceder a la cámara:', error);
+                    
+                    let errorMsg = 'Error de cámara: ';
+                    if (error.name === 'NotAllowedError') {
+                        errorMsg += 'Permisos denegados. Ve a Configuración del navegador.';
+                    } else if (error.name === 'NotFoundError') {
+                        errorMsg += 'No se encontró cámara.';
+                    } else {
+                        errorMsg += error.message;
+                    }
+                    
+                    alert(errorMsg);
+                    document.getElementById('status').textContent = 'Error de cámara';
+                }
             }
             
             // ========== GENERACIÓN DE ESTRUCTURA ==========
@@ -523,7 +570,7 @@
             }
             
             updateUI() {
-                const statusText = this.isARReady ? 'AR Listo' : 'Iniciando AR...';
+                const statusText = this.isARReady ? '📷 Cámara Activa' : 'Presiona "📷 Activar Cámara"';
                 document.getElementById('status').textContent = statusText;
                 
                 document.getElementById('structure-status').textContent = 
@@ -533,13 +580,25 @@
                 document.getElementById('scale-value').textContent = this.structureScale;
                 
                 // Actualizar botones
+                const cameraBtn = document.getElementById('camera-btn');
                 const spawnBtn = document.getElementById('spawn-btn');
                 const toggleBtn = document.getElementById('toggle-displacement-btn');
                 const destroyBtn = document.getElementById('destroy-btn');
                 
+                // Botón de cámara
+                if (this.isARReady) {
+                    cameraBtn.textContent = '✅ Cámara OK';
+                    cameraBtn.style.background = 'rgba(0, 150, 0, 0.8)';
+                    cameraBtn.disabled = true;
+                } else {
+                    cameraBtn.textContent = '📷 Activar Cámara';
+                    cameraBtn.style.background = 'rgba(255, 150, 0, 0.8)';
+                    cameraBtn.disabled = false;
+                }
+                
                 // Habilitar spawn cuando AR esté listo
                 spawnBtn.disabled = !this.isARReady;
-                spawnBtn.textContent = this.isARReady ? 'Generar Estructura' : 'Esperando AR...';
+                spawnBtn.textContent = this.isARReady ? 'Generar Estructura' : 'Esperando cámara...';
                 
                 toggleBtn.disabled = !this.structureGenerated;
                 destroyBtn.disabled = !this.structureGenerated;
