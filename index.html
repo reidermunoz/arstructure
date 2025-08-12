@@ -2,16 +2,253 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Hello, World! • A-Frame</title>
-    <meta name="description" content="Hello, World! • A-Frame">
+    <title>Estructura de Nodos y Elementos • A-Frame</title>
+    <meta name="description" content="Visualización 3D de estructura con nodos y elementos conectados">
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+      }
+      .info {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 15px;
+        border-radius: 5px;
+        font-size: 12px;
+        z-index: 1000;
+        max-width: 300px;
+      }
+      .controls {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 11px;
+        z-index: 1000;
+      }
+    </style>
   </head>
   <body>
-    <a-scene background="color: #ECECEC">
-      <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9" shadow></a-box>
-      <a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E" shadow></a-sphere>
-      <a-cylinder position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D" shadow></a-cylinder>
-      <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4" shadow></a-plane>
+    <div class="info">
+      <h3>Estructura de Nodos y Elementos</h3>
+      <p><strong>Nodos:</strong> 8 (esferas rojas)</p>
+      <p><strong>Elementos:</strong> 8 (líneas azules)</p>
+      <p><strong>Dimensiones:</strong> 8m × 6m</p>
+      <p><strong>Lv1:</strong> 3m | <strong>Lh1:</strong> 4m</p>
+    </div>
+    
+    <div class="controls">
+      <strong>Controles:</strong><br>
+      Mouse: Rotar vista | WASD: Moverse | VR: Botón inferior derecho
+    </div>
+
+    <a-scene background="color: #f0f0f0" 
+             camera="position: 10 5 10; look-at: 4 3 0"
+             cursor="rayOrigin: mouse">
+      
+      <!-- Iluminación -->
+      <a-light type="ambient" color="#404040"></a-light>
+      <a-light type="directional" position="10 10 5" color="#ffffff" intensity="0.8"></a-light>
+      
+      <!-- Plano de referencia (suelo) -->
+      <a-plane position="4 -0.5 0" 
+               rotation="-90 0 0" 
+               width="12" 
+               height="8" 
+               color="#e8e8e8" 
+               opacity="0.7"
+               shadow="receive: true"></a-plane>
+      
+      <!-- Grid de referencia -->
+      <a-entity id="grid">
+        <!-- Líneas verticales -->
+        <a-cylinder position="0 3 0.02" radius="0.01" height="6" color="#cccccc" opacity="0.5"></a-cylinder>
+        <a-cylinder position="4 3 0.02" radius="0.01" height="6" color="#cccccc" opacity="0.5"></a-cylinder>
+        <a-cylinder position="8 3 0.02" radius="0.01" height="6" color="#cccccc" opacity="0.5"></a-cylinder>
+        <!-- Líneas horizontales -->
+        <a-cylinder position="4 0 0.02" radius="0.01" height="8" rotation="0 0 90" color="#cccccc" opacity="0.5"></a-cylinder>
+        <a-cylinder position="4 3 0.02" radius="0.01" height="8" rotation="0 0 90" color="#cccccc" opacity="0.5"></a-cylinder>
+        <a-cylinder position="4 6 0.02" radius="0.01" height="8" rotation="0 0 90" color="#cccccc" opacity="0.5"></a-cylinder>
+      </a-entity>
+
+      <!-- NODOS (Esferas) -->
+      <!-- Nodo 1: [0,0] -->
+      <a-sphere position="0 0 0" 
+                radius="0.15" 
+                color="#ff4444" 
+                shadow="cast: true"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+        <a-text value="1" position="0 0.3 0" align="center" color="#000" scale="2 2 2"></a-text>
+      </a-sphere>
+      
+      <!-- Nodo 2: [0,3] -->
+      <a-sphere position="0 3 0" 
+                radius="0.15" 
+                color="#ff4444" 
+                shadow="cast: true"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+        <a-text value="2" position="0 0.3 0" align="center" color="#000" scale="2 2 2"></a-text>
+      </a-sphere>
+      
+      <!-- Nodo 3: [0,6] -->
+      <a-sphere position="0 6 0" 
+                radius="0.15" 
+                color="#ff4444" 
+                shadow="cast: true"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+        <a-text value="3" position="0 0.3 0" align="center" color="#000" scale="2 2 2"></a-text>
+      </a-sphere>
+      
+      <!-- Nodo 4: [4,6] -->
+      <a-sphere position="4 6 0" 
+                radius="0.15" 
+                color="#ff4444" 
+                shadow="cast: true"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+        <a-text value="4" position="0 0.3 0" align="center" color="#000" scale="2 2 2"></a-text>
+      </a-sphere>
+      
+      <!-- Nodo 5: [4,3] -->
+      <a-sphere position="4 3 0" 
+                radius="0.15" 
+                color="#ff4444" 
+                shadow="cast: true"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+        <a-text value="5" position="0 0.3 0" align="center" color="#000" scale="2 2 2"></a-text>
+      </a-sphere>
+      
+      <!-- Nodo 6: [4,0] -->
+      <a-sphere position="4 0 0" 
+                radius="0.15" 
+                color="#ff4444" 
+                shadow="cast: true"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+        <a-text value="6" position="0 0.3 0" align="center" color="#000" scale="2 2 2"></a-text>
+      </a-sphere>
+      
+      <!-- Nodo 7: [8,3] -->
+      <a-sphere position="8 3 0" 
+                radius="0.15" 
+                color="#ff4444" 
+                shadow="cast: true"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+        <a-text value="7" position="0 0.3 0" align="center" color="#000" scale="2 2 2"></a-text>
+      </a-sphere>
+      
+      <!-- Nodo 8: [8,0] -->
+      <a-sphere position="8 0 0" 
+                radius="0.15" 
+                color="#ff4444" 
+                shadow="cast: true"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+        <a-text value="8" position="0 0.3 0" align="center" color="#000" scale="2 2 2"></a-text>
+      </a-sphere>
+
+      <!-- ELEMENTOS (Líneas/Cilindros conectando nodos) -->
+      <!-- Elemento 1: Nodo 1-2 [0,0] to [0,3] -->
+      <a-cylinder position="0 1.5 0" 
+                  radius="0.03" 
+                  height="3" 
+                  color="#4488ff"
+                  animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000">
+        <a-text value="E1" position="0.3 0 0" align="center" color="#0066cc" scale="1.5 1.5 1.5"></a-text>
+      </a-cylinder>
+      
+      <!-- Elemento 2: Nodo 2-3 [0,3] to [0,6] -->
+      <a-cylinder position="0 4.5 0" 
+                  radius="0.03" 
+                  height="3" 
+                  color="#4488ff"
+                  animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000; delay: 200">
+        <a-text value="E2" position="0.3 0 0" align="center" color="#0066cc" scale="1.5 1.5 1.5"></a-text>
+      </a-cylinder>
+      
+      <!-- Elemento 3: Nodo 3-4 [0,6] to [4,6] -->
+      <a-cylinder position="2 6 0" 
+                  radius="0.03" 
+                  height="4" 
+                  rotation="0 0 90" 
+                  color="#4488ff"
+                  animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000; delay: 400">
+        <a-text value="E3" position="0 0.3 0" align="center" color="#0066cc" scale="1.5 1.5 1.5"></a-text>
+      </a-cylinder>
+      
+      <!-- Elemento 4: Nodo 4-5 [4,6] to [4,3] -->
+      <a-cylinder position="4 4.5 0" 
+                  radius="0.03" 
+                  height="3" 
+                  color="#4488ff"
+                  animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000; delay: 600">
+        <a-text value="E4" position="0.3 0 0" align="center" color="#0066cc" scale="1.5 1.5 1.5"></a-text>
+      </a-cylinder>
+      
+      <!-- Elemento 5: Nodo 2-5 [0,3] to [4,3] -->
+      <a-cylinder position="2 3 0" 
+                  radius="0.03" 
+                  height="4" 
+                  rotation="0 0 90" 
+                  color="#4488ff"
+                  animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000; delay: 800">
+        <a-text value="E5" position="0 0.3 0" align="center" color="#0066cc" scale="1.5 1.5 1.5"></a-text>
+      </a-cylinder>
+      
+      <!-- Elemento 6: Nodo 5-6 [4,3] to [4,0] -->
+      <a-cylinder position="4 1.5 0" 
+                  radius="0.03" 
+                  height="3" 
+                  color="#4488ff"
+                  animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000; delay: 1000">
+        <a-text value="E6" position="0.3 0 0" align="center" color="#0066cc" scale="1.5 1.5 1.5"></a-text>
+      </a-cylinder>
+      
+      <!-- Elemento 7: Nodo 5-7 [4,3] to [8,3] -->
+      <a-cylinder position="6 3 0" 
+                  radius="0.03" 
+                  height="4" 
+                  rotation="0 0 90" 
+                  color="#4488ff"
+                  animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000; delay: 1200">
+        <a-text value="E7" position="0 0.3 0" align="center" color="#0066cc" scale="1.5 1.5 1.5"></a-text>
+      </a-cylinder>
+      
+      <!-- Elemento 8: Nodo 7-8 [8,3] to [8,0] -->
+      <a-cylinder position="8 1.5 0" 
+                  radius="0.03" 
+                  height="3" 
+                  color="#4488ff"
+                  animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000; delay: 1400">
+        <a-text value="E8" position="0.3 0 0" align="center" color="#0066cc" scale="1.5 1.5 1.5"></a-text>
+      </a-cylinder>
+
+      <!-- Texto informativo en 3D -->
+      <a-text position="4 7.5 0" 
+              value="Estructura de Nodos y Elementos" 
+              align="center" 
+              color="#333333" 
+              scale="1.5 1.5 1.5"
+              animation="property: rotation; to: 0 360 0; loop: true; dur: 20000"></a-text>
+      
+      <!-- Ejes de coordenadas -->
+      <a-entity id="ejes">
+        <!-- Eje X (rojo) -->
+        <a-cylinder position="0.5 -1 0" radius="0.02" height="1" rotation="0 0 90" color="#ff0000"></a-cylinder>
+        <a-text value="X" position="1 -1 0" color="#ff0000" scale="0.8 0.8 0.8"></a-text>
+        
+        <!-- Eje Y (verde) -->
+        <a-cylinder position="0 -0.5 0" radius="0.02" height="1" color="#00ff00"></a-cylinder>
+        <a-text value="Y" position="0 0 0" color="#00ff00" scale="0.8 0.8 0.8"></a-text>
+        
+        <!-- Eje Z (azul) -->
+        <a-cylinder position="0 -1 0.5" radius="0.02" height="1" rotation="90 0 0" color="#0000ff"></a-cylinder>
+        <a-text value="Z" position="0 -1 1" color="#0000ff" scale="0.8 0.8 0.8"></a-text>
+      </a-entity>
     </a-scene>
   </body>
 </html>
