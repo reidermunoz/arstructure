@@ -430,7 +430,7 @@
         
         // Cambiar a modo AR
         async function cambiarAR() {
-            log('Iniciando modo AR');
+            log('=== INICIANDO MODO AR ===');
             
             // Verificar soporte
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -444,6 +444,7 @@
                 // Solicitar cámara
                 mostrarModal('Solicitando Cámara', 'Permite el acceso a la cámara para usar AR');
                 
+                log('Solicitando permisos de cámara...');
                 cameraStream = await navigator.mediaDevices.getUserMedia({
                     video: { 
                         facingMode: 'environment',
@@ -452,29 +453,57 @@
                     }
                 });
                 
+                log('Permisos de cámara obtenidos');
+                
                 // Configurar video
                 const video = document.getElementById('camera-video');
                 video.srcObject = cameraStream;
                 video.classList.add('show');
+                log('Video de cámara configurado');
                 
                 // Configurar escena AR
                 const scene = document.getElementById('scene');
                 scene.setAttribute('background', 'color: transparent');
+                log('Fondo de escena puesto transparente');
                 
                 const camera = document.getElementById('camera');
                 camera.setAttribute('wasd-controls', 'enabled: false');
                 camera.setAttribute('look-controls', 'enabled: false');
                 camera.setAttribute('position', '0 1.6 0');
                 camera.removeAttribute('look-at');
+                log('Cámara AR configurada');
+                
+                // Hacer la estructura invisible inicialmente
+                const container = document.getElementById('estructura-container');
+                container.setAttribute('visible', 'false');
+                log('Estructura ocultada inicialmente');
                 
                 // Configurar overlay de toque
                 const overlay = document.getElementById('touch-overlay');
                 overlay.classList.add('active');
                 
-                // Configurar eventos de toque
-                overlay.onclick = manejarToque;
-                overlay.ontouchstart = manejarToque;
+                // MEJORAR: Configurar eventos de toque más robustos
+                overlay.onclick = function(e) {
+                    log('Click detectado en overlay');
+                    manejarToque(e);
+                };
                 
+                overlay.ontouchstart = function(e) {
+                    log('Touch detectado en overlay');
+                    manejarToque(e);
+                };
+                
+                // También agregar listener directo al documento para mayor compatibilidad
+                document.addEventListener('click', function(e) {
+                    if (modoAR && !estructuraColocada && overlay.classList.contains('active')) {
+                        log('Click alternativo detectado en documento');
+                        manejarToque(e);
+                    }
+                });
+                
+                log('Eventos de toque configurados');
+                
+                // Configurar estado
                 modoAR = true;
                 estructuraColocada = false;
                 
@@ -484,12 +513,14 @@
                 document.getElementById('btn-deform').disabled = true;
                 
                 cerrarModal();
-                actualizarEstado('Modo AR - Toca la pantalla para colocar estructura');
+                actualizarEstado('Modo AR - Toca CUALQUIER PARTE de la pantalla para colocar estructura');
                 
-                log('Modo AR activado correctamente');
+                log('=== MODO AR ACTIVADO CORRECTAMENTE ===');
+                log('Estado final: modoAR=true, estructuraColocada=false');
+                log('Overlay activo, esperando toque...');
                 
             } catch (error) {
-                log(`Error activando AR: ${error.message}`, 'error');
+                log(`ERROR activando AR: ${error.message}`, 'error');
                 mostrarModal('Error de Cámara', `No se pudo acceder a la cámara: ${error.message}`, [
                     {texto: 'Reintentar', accion: cambiarAR},
                     {texto: 'Cancelar', accion: cerrarModal}
@@ -499,7 +530,18 @@
         
         // Manejar toque en AR
         function manejarToque(event) {
-            if (!modoAR || estructuraColocada) return;
+            log('Función manejarToque llamada');
+            log(`Estado: modoAR=${modoAR}, estructuraColocada=${estructuraColocada}`);
+            
+            if (!modoAR) {
+                log('ERROR: No estamos en modo AR');
+                return;
+            }
+            
+            if (estructuraColocada) {
+                log('AVISO: Estructura ya colocada');
+                return;
+            }
             
             event.preventDefault();
             
@@ -516,43 +558,89 @@
                 feedback.style.display = 'none';
             }, 500);
             
-            log(`Toque detectado en (${x}, ${y})`);
+            log(`Toque detectado en (${x}, ${y}) - Procediendo a colocar estructura`);
             
-            // Colocar estructura
+            // Colocar estructura inmediatamente
             colocarEstructura();
         }
         
         // Colocar estructura
         function colocarEstructura() {
-            if (!modoAR) {
-                log('No se puede colocar - no estamos en modo AR');
+            log('=== INICIANDO COLOCACIÓN DE ESTRUCTURA ===');
+            log(`Estado inicial: modoAR=${modoAR}, estructuraColocada=${estructuraColocada}`);
+            
+            // Permitir colocación tanto en AR como en 3D para testing
+            const container = document.getElementById('estructura-container');
+            
+            if (!container) {
+                log('ERROR CRÍTICO: No se encontró estructura-container');
                 return;
             }
             
-            log('Colocando estructura en AR');
-            
-            const container = document.getElementById('estructura-container');
+            log('Container encontrado, configurando posición...');
             
             if (modoAR) {
-                // Posición para AR: más cerca y centrada
-                container.setAttribute('position', '0 0 -3');
-                container.setAttribute('scale', '0.5 0.5 0.5');
+                // Posición para AR: MUY cerca y visible
+                log('Configurando para modo AR');
+                container.setAttribute('position', '0 0 -1.5');
+                container.setAttribute('scale', '0.3 0.3 0.3');
+                container.setAttribute('visible', 'true');
+                
+                // Asegurar que el plano base sea visible
+                const basePlane = document.getElementById('base-plane');
+                if (basePlane) {
+                    basePlane.setAttribute('opacity', '0.5');
+                    basePlane.setAttribute('color', '#00ff00');
+                    log('Plano base configurado como verde visible');
+                }
+                
+                // Hacer los nodos más brillantes
+                for (let i = 1; i <= 8; i++) {
+                    const nodo = document.getElementById(`nodo-${i}`);
+                    if (nodo) {
+                        nodo.setAttribute('material', 'color: #ff0000; metalness: 0.1; roughness: 0.3');
+                        nodo.setAttribute('radius', '0.4');
+                        log(`Nodo ${i} configurado como más visible`);
+                    }
+                }
+                
+            } else {
+                log('Configurando para modo 3D');
+                container.setAttribute('position', '0 0 0');
+                container.setAttribute('scale', '1 1 1');
             }
             
+            // MARCAR COMO COLOCADA INMEDIATAMENTE
             estructuraColocada = true;
+            log('estructuraColocada = true');
             
+            // Actualizar UI
             document.getElementById('btn-place').disabled = true;
             document.getElementById('btn-deform').disabled = false;
             document.getElementById('touch-overlay').classList.remove('active');
             
             actualizarEstado('Estructura colocada - Usa los botones para interactuar');
+            log('UI actualizada');
             
-            // Crear líneas
-            crearLineas();
+            // Crear líneas después de un pequeño delay
+            setTimeout(() => {
+                log('Creando líneas...');
+                crearLineas();
+            }, 100);
             
-            // Animación de aparición
+            // Animación de aparición más dramática
+            const escala = modoAR ? '0.3' : '1';
             container.setAttribute('animation', 
-                'property: scale; from: 0.1 0.1 0.1; to: 0.5 0.5 0.5; dur: 1000; easing: easeOutBack');
+                `property: scale; from: 0.05 0.05 0.05; to: ${escala} ${escala} ${escala}; dur: 1500; easing: easeOutElastic`);
+            
+            log('=== COLOCACIÓN COMPLETADA ===');
+            
+            // Verificación adicional
+            setTimeout(() => {
+                const posActual = container.getAttribute('position');
+                const escalaActual = container.getAttribute('scale');
+                log(`Verificación final - Posición: ${JSON.stringify(posActual)}, Escala: ${JSON.stringify(escalaActual)}`);
+            }, 200);
         }
         
         // Crear líneas entre nodos
@@ -647,11 +735,12 @@
         
         // Resetear
         function resetear() {
-            log('Reseteando aplicación');
+            log('=== RESETEANDO APLICACIÓN ===');
             
             if (cameraStream) {
                 cameraStream.getTracks().forEach(track => track.stop());
                 cameraStream = null;
+                log('Stream de cámara detenido');
             }
             
             document.getElementById('camera-video').classList.remove('show');
@@ -661,11 +750,14 @@
             estructuraColocada = false;
             estructuraDeformada = false;
             
+            log('Variables de estado reseteadas');
+            
             // Limpiar líneas
             for (let i = 1; i <= 8; i++) {
                 const linea = document.getElementById(`linea-${i}`);
                 if (linea) linea.remove();
             }
+            log('Líneas eliminadas');
             
             // Resetear nodos a posiciones originales
             for (let i = 0; i < 8; i++) {
@@ -673,7 +765,17 @@
                 if (nodo) {
                     nodo.setAttribute('position', `${posicionesOriginales[i][0]} ${posicionesOriginales[i][1]} 0`);
                     nodo.setAttribute('color', '#ff4444');
+                    nodo.setAttribute('radius', '0.3');
+                    nodo.removeAttribute('material');
                 }
+            }
+            log('Nodos reseteados');
+            
+            // Resetear plano base
+            const basePlane = document.getElementById('base-plane');
+            if (basePlane) {
+                basePlane.setAttribute('color', '#ffffff');
+                basePlane.setAttribute('opacity', '0.3');
             }
             
             // Resetear botones
@@ -682,9 +784,12 @@
             document.getElementById('btn-place').disabled = true;
             document.getElementById('btn-deform').disabled = true;
             document.getElementById('btn-deform').textContent = '🔧 Deformar';
+            document.getElementById('btn-deform').style.background = '#00aa00';
             
             cerrarModal();
             cambiarA3D();
+            
+            log('=== RESET COMPLETADO ===');
         }
         
         // Inicialización
