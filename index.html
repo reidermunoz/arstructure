@@ -125,151 +125,78 @@
         <!-- NODOS (Esferas) -->
         <!-- Nodo 1: [0,0] -->
         <a-sphere id="nodo-1" position="0 0 0" 
-                  radius="0.8" 
+                  radius="0.4" 
                   color="#ff4444" 
                   shadow="cast: true"
                   animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
-          <a-text value="1" position="0 1.5 0" align="center" color="#000" scale="10 10 10"></a-text>
+          <a-text value="1" position="0 1 0" align="center" color="#000" scale="4 4 4"></a-text>
         </a-sphere>
         
         <!-- Nodo 2: [0,3] -->
         <a-sphere id="nodo-2" position="0 3 0" 
-                  radius="0.8" 
+                  radius="0.4" 
                   color="#ff4444" 
                   shadow="cast: true"
                   animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
-          <a-text value="2" position="0 1.5 0" align="center" color="#000" scale="10 10 10"></a-text>
+          <a-text value="2" position="0 1 0" align="center" color="#000" scale="4 4 4"></a-text>
         </a-sphere>
         
         <!-- Nodo 3: [0,6] -->
         <a-sphere id="nodo-3" position="0 6 0" 
-                  radius="0.8" 
+                  radius="0.4" 
                   color="#ff4444" 
                   shadow="cast: true"
                   animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
-          <a-text value="3" position="0 1.5 0" align="center" color="#000" scale="10 10 10"></a-text>
+          <a-text value="3" position="0 1 0" align="center" color="#000" scale="4 4 4"></a-text>
         </a-sphere>
         
         <!-- Nodo 4: [4,6] -->
         <a-sphere id="nodo-4" position="4 6 0" 
-                  radius="0.8" 
+                  radius="0.4" 
                   color="#ff4444" 
                   shadow="cast: true"
                   animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
-          <a-text value="4" position="0 1.5 0" align="center" color="#000" scale="10 10 10"></a-text>
+          <a-text value="4" position="0 1 0" align="center" color="#000" scale="4 4 4"></a-text>
         </a-sphere>
         
         <!-- Nodo 5: [4,3] -->
         <a-sphere id="nodo-5" position="4 3 0" 
-                  radius="0.8" 
+                  radius="0.4" 
                   color="#ff4444" 
                   shadow="cast: true"
                   animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
-          <a-text value="5" position="0 1.5 0" align="center" color="#000" scale="10 10 10"></a-text>
+          <a-text value="5" position="0 1 0" align="center" color="#000" scale="4 4 4"></a-text>
         </a-sphere>
         
         <!-- Nodo 6: [4,0] -->
         <a-sphere id="nodo-6" position="4 0 0" 
-                  radius="0.8" 
+                  radius="0.4" 
                   color="#ff4444" 
                   shadow="cast: true"
                   animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
-          <a-text value="6" position="0 1.5 0" align="center" color="#000" scale="10 10 10"></a-text>
+          <a-text value="6" position="0 1 0" align="center" color="#000" scale="4 4 4"></a-text>
         </a-sphere>
         
         <!-- Nodo 7: [8,3] -->
         <a-sphere id="nodo-7" position="8 3 0" 
-                  radius="0.8" 
+                  radius="0.4" 
                   color="#ff4444" 
                   shadow="cast: true"
                   animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
-          <a-text value="7" position="0 1.5 0" align="center" color="#000" scale="10 10 10"></a-text>
+          <a-text value="7" position="0 1 0" align="center" color="#000" scale="4 4 4"></a-text>
         </a-sphere>
         
         <!-- Nodo 8: [8,0] -->
         <a-sphere id="nodo-8" position="8 0 0" 
-                  radius="0.8" 
+                  radius="0.4" 
                   color="#ff4444" 
                   shadow="cast: true"
                   animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
-          <a-text value="8" position="0 1.5 0" align="center" color="#000" scale="10 10 10"></a-text>
+          <a-text value="8" position="0 1 0" align="center" color="#000" scale="4 4 4"></a-text>
         </a-sphere>
 
-        <!-- ELEMENTOS (Líneas/Cilindros conectando nodos) -->
-        <!-- Elemento 1: Nodo 1-2 [0,0] to [0,3] -->
-        <a-cylinder id="elemento-1" position="0 1.5 0" 
-                    radius="0.15" 
-                    height="3" 
-                    color="#4488ff"
-                    animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000">
-          <a-text value="E1" position="3 0 0" align="center" color="#0066cc" scale="8 8 8"></a-text>
-        </a-cylinder>
-        
-        <!-- Elemento 2: Nodo 2-3 [0,3] to [0,6] -->
-        <a-cylinder id="elemento-2" position="0 4.5 0" 
-                    radius="0.15" 
-                    height="3" 
-                    color="#4488ff"
-                    animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000; delay: 200">
-          <a-text value="E2" position="3 0 0" align="center" color="#0066cc" scale="8 8 8"></a-text>
-        </a-cylinder>
-        
-        <!-- Elemento 3: Nodo 3-4 [0,6] to [4,6] -->
-        <a-cylinder id="elemento-3" position="2 6 0" 
-                    radius="0.15" 
-                    height="4" 
-                    rotation="0 0 90" 
-                    color="#4488ff"
-                    animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000; delay: 400">
-          <a-text value="E3" position="0 3 0" align="center" color="#0066cc" scale="8 8 8"></a-text>
-        </a-cylinder>
-        
-        <!-- Elemento 4: Nodo 4-5 [4,6] to [4,3] -->
-        <a-cylinder id="elemento-4" position="4 4.5 0" 
-                    radius="0.15" 
-                    height="3" 
-                    color="#4488ff"
-                    animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000; delay: 600">
-          <a-text value="E4" position="3 0 0" align="center" color="#0066cc" scale="8 8 8"></a-text>
-        </a-cylinder>
-        
-        <!-- Elemento 5: Nodo 2-5 [0,3] to [4,3] -->
-        <a-cylinder id="elemento-5" position="2 3 0" 
-                    radius="0.15" 
-                    height="4" 
-                    rotation="0 0 90" 
-                    color="#4488ff"
-                    animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000; delay: 800">
-          <a-text value="E5" position="0 3 0" align="center" color="#0066cc" scale="8 8 8"></a-text>
-        </a-cylinder>
-        
-        <!-- Elemento 6: Nodo 5-6 [4,3] to [4,0] -->
-        <a-cylinder id="elemento-6" position="4 1.5 0" 
-                    radius="0.15" 
-                    height="3" 
-                    color="#4488ff"
-                    animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000; delay: 1000">
-          <a-text value="E6" position="3 0 0" align="center" color="#0066cc" scale="8 8 8"></a-text>
-        </a-cylinder>
-        
-        <!-- Elemento 7: Nodo 5-7 [4,3] to [8,3] -->
-        <a-cylinder id="elemento-7" position="6 3 0" 
-                    radius="0.15" 
-                    height="4" 
-                    rotation="0 0 90" 
-                    color="#4488ff"
-                    animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000; delay: 1200">
-          <a-text value="E7" position="0 3 0" align="center" color="#0066cc" scale="8 8 8"></a-text>
-        </a-cylinder>
-        
-        <!-- Elemento 8: Nodo 7-8 [8,3] to [8,0] -->
-        <a-cylinder id="elemento-8" position="8 1.5 0" 
-                    radius="0.15" 
-                    height="3" 
-                    color="#4488ff"
-                    animation="property: material.color; to: #88bbff; dir: alternate; loop: true; dur: 2000; delay: 1400">
-          <a-text value="E8" position="3 0 0" align="center" color="#0066cc" scale="8 8 8"></a-text>
-        </a-cylinder>
+        <!-- ELEMENTOS (Líneas conectando nodos) -->
+        <!-- Las líneas se crearán dinámicamente en JavaScript para seguir a los nodos -->
 
         <!-- Texto informativo en 3D -->
         <a-text position="4 8 0" 
@@ -317,7 +244,7 @@
       ];
       
       // Factor de amplificación para hacer visibles los desplazamientos microscópicos
-      const FACTOR_AMPLIFICACION = 8000; // 50,000x amplificación
+      const FACTOR_AMPLIFICACION = 5000; // 50,000x amplificación
       
       let estructuraDeformada = false;
       
@@ -333,44 +260,54 @@
         [6, 7]  // Elemento 8: Nodo 7-8
       ];
       
-      // Función para calcular posición y orientación de un elemento entre dos nodos
-      function actualizarElemento(elementoId, nodo1Pos, nodo2Pos) {
-        const elemento = document.getElementById(elementoId);
-        if (!elemento) return;
+      // Función para crear una línea entre dos puntos
+      function crearLinea(id, punto1, punto2, color = '#4488ff') {
+        // Eliminar línea existente si existe
+        const lineaExistente = document.getElementById(id);
+        if (lineaExistente) {
+          lineaExistente.remove();
+        }
         
-        // Calcular punto medio
-        const centroX = (nodo1Pos.x + nodo2Pos.x) / 2;
-        const centroY = (nodo1Pos.y + nodo2Pos.y) / 2;
+        // Crear nueva línea usando A-Frame line geometry
+        const linea = document.createElement('a-entity');
+        linea.setAttribute('id', id);
+        linea.setAttribute('line', {
+          start: `${punto1.x} ${punto1.y} ${punto1.z || 0}`,
+          end: `${punto2.x} ${punto2.y} ${punto2.z || 0}`,
+          color: color,
+          opacity: 0.8
+        });
         
-        // Calcular diferencias
-        const dx = nodo2Pos.x - nodo1Pos.x;
-        const dy = nodo2Pos.y - nodo1Pos.y;
+        // Agregar la línea a la estructura principal
+        const estructura = document.getElementById('estructura-principal');
+        estructura.appendChild(linea);
         
-        // Calcular distancia (longitud del elemento)
-        const longitud = Math.sqrt(dx * dx + dy * dy);
+        console.log(`Línea ${id} creada: [${punto1.x.toFixed(2)}, ${punto1.y.toFixed(2)}] -> [${punto2.x.toFixed(2)}, ${punto2.y.toFixed(2)}]`);
+      }
+      
+      // Función para actualizar todas las líneas
+      function actualizarLineas() {
+        console.log('Actualizando todas las líneas...');
         
-        // Los cilindros en A-Frame están orientados verticalmente por defecto (a lo largo del eje Y)
-        // Para orientarlos correctamente necesitamos calcular la rotación
-        let rotX = 0, rotY = 0, rotZ = 0;
-        
-        if (Math.abs(dx) > 0.01) {
-          // Elemento tiene componente horizontal
-          if (Math.abs(dy) < 0.01) {
-            // Elemento puramente horizontal
-            rotZ = 90;
-          } else {
-            // Elemento diagonal
-            rotZ = Math.atan2(dx, dy) * (180 / Math.PI);
+        for (let i = 0; i < conectividad.length; i++) {
+          const nodo1Idx = conectividad[i][0];
+          const nodo2Idx = conectividad[i][1];
+          const lineaId = `linea-${i + 1}`;
+          
+          // Obtener nodos
+          const nodo1 = document.getElementById(`nodo-${nodo1Idx + 1}`);
+          const nodo2 = document.getElementById(`nodo-${nodo2Idx + 1}`);
+          
+          if (nodo1 && nodo2) {
+            // Obtener posiciones reales
+            const pos1 = nodo1.getAttribute('position');
+            const pos2 = nodo2.getAttribute('position');
+            
+            // Crear línea
+            const color = estructuraDeformada ? '#ff8844' : '#4488ff';
+            crearLinea(lineaId, pos1, pos2, color);
           }
         }
-        // Si es vertical (solo dy), no necesita rotación (rotZ = 0)
-        
-        // Aplicar nuevas transformaciones
-        elemento.setAttribute('position', {x: centroX, y: centroY, z: 0});
-        elemento.setAttribute('rotation', {x: rotX, y: rotY, z: rotZ});
-        elemento.setAttribute('height', longitud);
-        
-        console.log(`  ${elementoId}: centro=[${centroX.toFixed(2)}, ${centroY.toFixed(2)}], longitud=${longitud.toFixed(2)}, dx=${dx.toFixed(2)}, dy=${dy.toFixed(2)}, rotZ=${rotZ.toFixed(1)}°`);
       }
       
       // Posiciones originales de los nodos (coordenadas MATLAB)
@@ -449,17 +386,10 @@
           }
         }
         
-        // Actualizar elementos (líneas) basándose en las nuevas posiciones de nodos
-        console.log('Actualizando elementos...');
-        for (let i = 0; i < conectividad.length; i++) {
-          const nodo1Idx = conectividad[i][0];
-          const nodo2Idx = conectividad[i][1];
-          const elementoId = `elemento-${i + 1}`;
-          
-          if (posicionesActuales[nodo1Idx] && posicionesActuales[nodo2Idx]) {
-            actualizarElemento(elementoId, posicionesActuales[nodo1Idx], posicionesActuales[nodo2Idx]);
-          }
-        }
+        // Actualizar líneas después de mover nodos
+        setTimeout(() => {
+          actualizarLineas();
+        }, 150); // Delay para que A-Frame procese las posiciones
         
         // Actualizar info en pantalla
         if (debugInfo) {
@@ -487,6 +417,11 @@
           console.log('✅ Botón de deformación configurado');
         }
         
+        // Crear líneas iniciales
+        setTimeout(() => {
+          actualizarLineas();
+        }, 500); // Delay inicial para que todo esté cargado
+        
         // Aplicar la escala a la estructura
         estructura.setAttribute('scale', `${ESCALA} ${ESCALA} ${ESCALA}`);
         
@@ -498,8 +433,8 @@
         const centroY = dimensionY / 2;
         
         // Ajustar cámara para vista desde arriba y lejos
-        const distanciaOptima = Math.max(dimensionX, dimensionY) * 8;
-        const alturaOptima = dimensionY * 3;
+        const distanciaOptima = Math.max(dimensionX, dimensionY) * 3;
+        const alturaOptima = dimensionY * 1.5;
         
         camara.setAttribute('position', `${centroX} ${alturaOptima} ${distanciaOptima}`);
         camara.setAttribute('look-at', `${centroX} ${centroY} 0`);
