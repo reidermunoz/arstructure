@@ -404,14 +404,15 @@
     
     <div id="ar-instructions" class="ar-instructions">
       <h3>🎯 AR Activado</h3>
-      <p><strong>¡Listo para detectar superficies!</strong></p>
+      <p><strong>¡Listo para colocar estructura!</strong></p>
       <div style="text-align: left; margin: 15px 0;">
-        <p>📱 <strong>Paso 1:</strong> Mueve tu dispositivo lentamente</p>
-        <p>🎯 <strong>Paso 2:</strong> Apunta a una superficie plana</p>
-        <p>👆 <strong>Paso 3:</strong> Toca la pantalla para colocar</p>
+        <p>📱 <strong>Paso 1:</strong> Mantén el dispositivo estable</p>
+        <p>👆 <strong>Paso 2:</strong> Toca CUALQUIER PARTE de la pantalla</p>
+        <p>🏗️ <strong>Paso 3:</strong> La estructura aparecerá frente a ti</p>
       </div>
-      <p><small>Funciona mejor en: mesas, suelos, superficies claras</small></p>
+      <p><small><strong>Nota:</strong> Toca fuera de estos botones azules</small></p>
       <button onclick="cerrarInstrucciones()">¡Entendido!</button>
+      <button onclick="colocarEstructuraManual()" style="background: #ff6600; margin-left: 10px;">🎯 Colocar Ahora</button>
     </div>
     
     <div id="ar-cursor" class="ar-cursor"></div>
@@ -723,7 +724,6 @@
           arScene.setAttribute('device-orientation-permission-ui', 'enabled: false');
           
           // Configurar video de cámara como fondo
-          const assets = document.createElement('a-assets');
           const video = document.createElement('video');
           video.id = 'camera-feed';
           video.setAttribute('autoplay', '');
@@ -740,11 +740,33 @@
           // Configurar stream de cámara
           if (cameraStream) {
             video.srcObject = cameraStream;
-            video.play();
+            video.play().then(() => {
+              console.log('📹 Video de cámara iniciado');
+            }).catch(e => {
+              console.error('❌ Error reproduciendo video:', e);
+            });
           }
           
           // Agregar video al DOM
           document.body.appendChild(video);
+          
+          // Crear overlay transparente para capturar eventos
+          const overlay = document.createElement('div');
+          overlay.id = 'ar-overlay';
+          overlay.style.position = 'fixed';
+          overlay.style.top = '0';
+          overlay.style.left = '0';
+          overlay.style.width = '100%';
+          overlay.style.height = '100%';
+          overlay.style.zIndex = '500';
+          overlay.style.background = 'transparent';
+          overlay.style.cursor = 'crosshair';
+          
+          // Event listeners para el overlay (más confiable)
+          overlay.addEventListener('click', manejarToqueAR, { passive: false });
+          overlay.addEventListener('touchstart', manejarToqueAR, { passive: false });
+          
+          document.body.appendChild(overlay);
           
           // Crear cámara AR
           const cameraAR = document.createElement('a-entity');
@@ -765,10 +787,6 @@
           directionalLight.setAttribute('intensity', '0.8');
           arScene.appendChild(directionalLight);
           
-          // Event listeners para toques/clicks
-          arScene.addEventListener('click', manejarToqueAR);
-          arScene.addEventListener('touchstart', manejarToqueAR);
-          
           // Reemplazar escena
           const oldScene = document.getElementById('main-scene');
           oldScene.parentNode.replaceChild(arScene, oldScene);
@@ -779,7 +797,7 @@
             loading.classList.remove('show');
             document.getElementById('ar-instructions').classList.add('show');
             arInitialized = true;
-            actualizarEstadoAR('Busca una superficie plana y toca para colocar');
+            actualizarEstadoAR('✅ Listo - Toca la pantalla para colocar');
           }, 2000);
           
         } catch (error) {
@@ -791,34 +809,55 @@
       
       // Función para manejar toques en AR
       function manejarToqueAR(event) {
-        if (!modoAR || estructuraColocada) return;
+        if (!modoAR || estructuraColocada || !arInitialized) {
+          console.log('❌ Toque ignorado:', { modoAR, estructuraColocada, arInitialized });
+          return;
+        }
         
         event.preventDefault();
+        event.stopPropagation();
         
-        console.log('👆 Toque detectado en AR');
+        console.log('👆 Toque detectado en AR - procesando...');
         
-        // Calcular posición relativa al centro de la pantalla
+        // Calcular posición del toque
         let clientX, clientY;
-        if (event.touches && event.touches.length > 0) {
+        if (event.type === 'touchstart' && event.touches && event.touches.length > 0) {
           clientX = event.touches[0].clientX;
           clientY = event.touches[0].clientY;
-        } else {
+          console.log('📱 Toque táctil:', clientX, clientY);
+        } else if (event.type === 'click') {
           clientX = event.clientX;
           clientY = event.clientY;
+          console.log('🖱️ Click de mouse:', clientX, clientY);
+        } else {
+          console.log('❓ Evento no reconocido:', event.type);
+          return;
         }
         
         // Convertir coordenadas de pantalla a posición 3D
-        const rect = event.target.getBoundingClientRect ? event.target.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+        const rect = { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
         const x = ((clientX - rect.left) / rect.width) * 2 - 1;
         const y = -((clientY - rect.top) / rect.height) * 2 + 1;
         
-        // Colocar estructura a 1 metro frente a la cámara
+        console.log('📍 Coordenadas normalizadas:', x, y);
+        
+        // Colocar estructura con desplazamiento basado en el toque
         const position = {
-          x: x * 0.5, // Desplazamiento lateral basado en toque
-          y: -0.3,     // Altura fija
-          z: -1.0      // 1 metro frente a la cámara
+          x: x * 0.8, // Más rango de movimiento lateral
+          y: -0.2,     // Altura ajustada
+          z: -1.2      // Un poco más lejos para mejor visualización
         };
         
+        console.log('🎯 Posición calculada:', position);
+        colocarEstructura(position);
+      }
+      
+      // Función global para colocación manual (botón de emergencia)
+      function colocarEstructuraManual() {
+        if (!modoAR || estructuraColocada) return;
+        
+        console.log('🔧 Colocación manual activada');
+        const position = { x: 0, y: -0.2, z: -1.2 };
         colocarEstructura(position);
       }
       
@@ -1234,6 +1273,12 @@
       window.cambiarModo = cambiarModo;
       window.cerrarInstrucciones = cerrarInstrucciones;
       window.resetearEstructura = resetearEstructura;
+      window.colocarEstructuraManual = colocarEstructuraManual;
+      
+      // Variables globales para debug
+      window.modoAR = false;
+      window.estructuraColocada = false;
+      window.arInitialized = false;
     </script>
   </body>
 </html>
