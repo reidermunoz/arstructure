@@ -611,120 +611,162 @@
             colocarEstructura();
         }
         
-        // Colocar estructura con posicionamiento garantizado
+        // Colocar estructura usando HTML/CSS directo sobre el video
         function colocarEstructura() {
-            log('=== INICIANDO COLOCACIÓN CON POSICIONAMIENTO GARANTIZADO ===');
-            
-            const container = document.getElementById('estructura-container');
-            const camera = document.getElementById('camera');
-            
-            if (!container) {
-                log('ERROR: Container no encontrado');
-                return;
-            }
-            
-            if (!camera) {
-                log('ERROR: Cámara no encontrada');
-                return;
-            }
-            
-            // ESTRATEGIA 1: POSICIONAR RELATIVO A LA CÁMARA
-            log('Estrategia 1: Posicionando relativo a cámara');
+            log('=== INICIANDO COLOCACIÓN CON RENDERIZADO HTML/CSS ===');
             
             if (modoAR) {
-                // En AR: Posicionar DIRECTAMENTE frente a la cámara
-                const cameraPos = camera.getAttribute('position');
-                const cameraRot = camera.getAttribute('rotation');
+                log('Modo AR: Creando estructura con elementos HTML/CSS');
                 
-                log(`Cámara posición: ${JSON.stringify(cameraPos)}`);
-                log(`Cámara rotación: ${JSON.stringify(cameraRot)}`);
-                
-                // Calcular posición frente a la cámara
-                const distancia = 0.5; // Muy cerca
-                const x = cameraPos.x;
-                const y = cameraPos.y;
-                const z = cameraPos.z - distancia; // Frente a la cámara
-                
-                container.setAttribute('position', `${x} ${y} ${z}`);
-                container.setAttribute('scale', '0.1 0.1 0.1');
-                container.setAttribute('visible', 'true');
-                
-                log(`Estructura posicionada en: ${x} ${y} ${z}`);
-                
-                // ESTRATEGIA 2: Si la primera falla, probar múltiples posiciones
-                setTimeout(() => {
-                    log('Verificando visibilidad...');
-                    // Probar posiciones adicionales si no es visible
-                    const posicionesAlternativas = [
-                        {x: 0, y: 0, z: -0.3, scale: '0.08'},
-                        {x: 0, y: 0.2, z: -0.4, scale: '0.05'},
-                        {x: 0.2, y: 0, z: -0.3, scale: '0.08'},
-                        {x: -0.2, y: 0, z: -0.3, scale: '0.08'},
-                        {x: 0, y: -0.2, z: -0.3, scale: '0.08'}
-                    ];
-                    
-                    let indice = 0;
-                    const probarPosiciones = setInterval(() => {
-                        if (indice < posicionesAlternativas.length) {
-                            const pos = posicionesAlternativas[indice];
-                            container.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
-                            container.setAttribute('scale', `${pos.scale} ${pos.scale} ${pos.scale}`);
-                            log(`Probando posición alternativa ${indice + 1}: ${pos.x} ${pos.y} ${pos.z} escala: ${pos.scale}`);
-                            indice++;
-                        } else {
-                            clearInterval(probarPosiciones);
-                            log('Todas las posiciones alternativas probadas');
-                        }
-                    }, 1000);
-                }, 1000);
-                
-                // ESTRATEGIA 3: Crear objetos de prueba en diferentes posiciones
-                const posicionesPrueba = [
-                    {x: 0, y: 0, z: -0.2, color: '#ff0000', id: 'test-red'},
-                    {x: 0, y: 0, z: -0.5, color: '#00ff00', id: 'test-green'},
-                    {x: 0, y: 0, z: -1.0, color: '#0000ff', id: 'test-blue'},
-                    {x: 0.3, y: 0, z: -0.3, color: '#ffff00', id: 'test-yellow'},
-                    {x: -0.3, y: 0, z: -0.3, color: '#ff00ff', id: 'test-magenta'}
-                ];
-                
-                posicionesPrueba.forEach((pos, i) => {
-                    const testSphere = document.createElement('a-sphere');
-                    testSphere.id = pos.id;
-                    testSphere.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
-                    testSphere.setAttribute('radius', '0.05');
-                    testSphere.setAttribute('color', pos.color);
-                    testSphere.setAttribute('material', `emissive: ${pos.color}; metalness: 0`);
-                    
-                    const scene = document.getElementById('scene');
-                    scene.appendChild(testSphere);
-                    
-                    log(`Esfera de prueba ${pos.color} creada en ${pos.x} ${pos.y} ${pos.z}`);
-                });
-                
-                // Hacer nodos EXTREMADAMENTE visibles
-                for (let i = 1; i <= 8; i++) {
-                    const nodo = document.getElementById(`nodo-${i}`);
-                    if (nodo) {
-                        nodo.setAttribute('visible', 'true');
-                        nodo.setAttribute('radius', '1.0');  // ENORME
-                        nodo.setAttribute('material', 'color: #ff0000; emissive: #ff0000; metalness: 0; roughness: 0');
-                        
-                        // Crear una luz en cada nodo
-                        const luz = document.createElement('a-light');
-                        luz.setAttribute('type', 'point');
-                        luz.setAttribute('intensity', '2');
-                        luz.setAttribute('color', '#ff0000');
-                        luz.setAttribute('distance', '10');
-                        nodo.appendChild(luz);
-                        
-                        log(`Nodo ${i} convertido en esfera luminosa gigante`);
-                    }
+                // Crear contenedor HTML para la estructura AR
+                let arContainer = document.getElementById('ar-html-structure');
+                if (arContainer) {
+                    arContainer.remove();
                 }
                 
+                arContainer = document.createElement('div');
+                arContainer.id = 'ar-html-structure';
+                arContainer.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    z-index: 1000;
+                    pointer-events: none;
+                    width: 300px;
+                    height: 200px;
+                `;
+                
+                document.body.appendChild(arContainer);
+                log('Contenedor HTML creado');
+                
+                // Crear nodos como elementos HTML
+                const posicionesHTML = [
+                    {x: 0, y: 0, id: 1}, {x: 0, y: 60, id: 2}, {x: 0, y: 120, id: 3},
+                    {x: 100, y: 120, id: 4}, {x: 100, y: 60, id: 5}, {x: 100, y: 0, id: 6},
+                    {x: 200, y: 60, id: 7}, {x: 200, y: 0, id: 8}
+                ];
+                
+                posicionesHTML.forEach(pos => {
+                    const nodo = document.createElement('div');
+                    nodo.id = `nodo-html-${pos.id}`;
+                    nodo.style.cssText = `
+                        position: absolute;
+                        left: ${pos.x}px;
+                        top: ${pos.y}px;
+                        width: 30px;
+                        height: 30px;
+                        background: radial-gradient(circle, #ff0000, #aa0000);
+                        border-radius: 50%;
+                        border: 3px solid #ffffff;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        color: white;
+                        font-weight: bold;
+                        font-size: 14px;
+                        box-shadow: 0 0 20px rgba(255,0,0,0.8);
+                        animation: pulse 2s infinite;
+                        transform: translate(-50%, -50%);
+                    `;
+                    nodo.textContent = pos.id;
+                    arContainer.appendChild(nodo);
+                    log(`Nodo HTML ${pos.id} creado en ${pos.x}, ${pos.y}`);
+                });
+                
+                // Crear líneas como elementos HTML
+                const conexionesHTML = [
+                    {from: 1, to: 2}, {from: 2, to: 3}, {from: 3, to: 4}, 
+                    {from: 4, to: 5}, {from: 2, to: 5}, {from: 5, to: 6}, 
+                    {from: 5, to: 7}, {from: 7, to: 8}
+                ];
+                
+                conexionesHTML.forEach((conn, index) => {
+                    const nodo1 = posicionesHTML.find(p => p.id === conn.from);
+                    const nodo2 = posicionesHTML.find(p => p.id === conn.to);
+                    
+                    if (nodo1 && nodo2) {
+                        const dx = nodo2.x - nodo1.x;
+                        const dy = nodo2.y - nodo1.y;
+                        const length = Math.sqrt(dx*dx + dy*dy);
+                        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+                        
+                        const linea = document.createElement('div');
+                        linea.style.cssText = `
+                            position: absolute;
+                            left: ${nodo1.x}px;
+                            top: ${nodo1.y}px;
+                            width: ${length}px;
+                            height: 4px;
+                            background: linear-gradient(90deg, #0088ff, #0066cc);
+                            transform-origin: 0 50%;
+                            transform: rotate(${angle}deg);
+                            box-shadow: 0 0 10px rgba(0,136,255,0.6);
+                            opacity: 0.9;
+                        `;
+                        arContainer.appendChild(linea);
+                        log(`Línea HTML ${index + 1} creada`);
+                    }
+                });
+                
+                // Agregar título
+                const titulo = document.createElement('div');
+                titulo.style.cssText = `
+                    position: absolute;
+                    top: -40px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    color: #ffffff;
+                    font-size: 16px;
+                    font-weight: bold;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                    text-align: center;
+                    background: rgba(0,0,0,0.7);
+                    padding: 5px 10px;
+                    border-radius: 5px;
+                `;
+                titulo.textContent = 'Estructura de Nodos AR';
+                arContainer.appendChild(titulo);
+                
+                // Agregar estilos de animación
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes pulse {
+                        0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                        50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.8; }
+                    }
+                `;
+                document.head.appendChild(style);
+                
+                log('Estructura HTML/CSS creada con animaciones');
+                
+                // También intentar crear elementos A-Frame en una posición fija de pantalla
+                const scene = document.getElementById('scene');
+                const overlay3D = document.createElement('a-entity');
+                overlay3D.id = 'overlay-3d';
+                overlay3D.setAttribute('position', '0 0 -0.1'); // Muy cerca de la cámara
+                
+                // Crear una caja simple que DEBE ser visible
+                const testCube = document.createElement('a-box');
+                testCube.setAttribute('position', '0 0 0');
+                testCube.setAttribute('scale', '0.05 0.05 0.05');
+                testCube.setAttribute('color', '#00ff00');
+                testCube.setAttribute('material', 'emissive: #00ff00; transparent: false; opacity: 1');
+                testCube.setAttribute('geometry', 'primitive: box');
+                testCube.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 2000');
+                
+                overlay3D.appendChild(testCube);
+                scene.appendChild(overlay3D);
+                
+                log('Cubo de prueba A-Frame agregado a z: -0.1');
+                
             } else {
-                // Modo 3D normal
+                // Modo 3D normal - usar A-Frame
+                log('Modo 3D: Usando A-Frame normal');
+                const container = document.getElementById('estructura-container');
                 container.setAttribute('position', '0 0 0');
                 container.setAttribute('scale', '1 1 1');
+                container.setAttribute('visible', 'true');
             }
             
             // Marcar como colocada
@@ -735,46 +777,18 @@
             document.getElementById('btn-deform').disabled = false;
             document.getElementById('touch-overlay').classList.remove('active');
             
-            actualizarEstado('Estructura colocada - Buscando esferas de colores en pantalla');
+            if (modoAR) {
+                actualizarEstado('Estructura AR creada con HTML/CSS - ¿La ves ahora?');
+            } else {
+                actualizarEstado('Estructura 3D colocada');
+                // Crear líneas A-Frame para modo 3D
+                setTimeout(() => crearLineas(), 100);
+            }
             
-            // Animación más agresiva
-            container.removeAttribute('animation');
-            setTimeout(() => {
-                const escalaFinal = modoAR ? '0.1' : '1';
-                container.setAttribute('animation', 
-                    `property: rotation; to: 0 360 0; loop: true; dur: 3000`);
-                log('Animación de rotación aplicada para mayor visibilidad');
-            }, 500);
-            
-            // REPORTE FINAL COMPLETO
-            setTimeout(() => {
-                log('=== REPORTE FINAL DE COLOCACIÓN ===');
-                const finalPos = container.getAttribute('position');
-                const finalScale = container.getAttribute('scale');
-                const finalVisible = container.getAttribute('visible');
-                
-                log(`Posición final: ${JSON.stringify(finalPos)}`);
-                log(`Escala final: ${JSON.stringify(finalScale)}`);
-                log(`Visible final: ${finalVisible}`);
-                log(`Nodos en container: ${container.children.length}`);
-                
-                // Verificar cada nodo individualmente
-                for (let i = 1; i <= 8; i++) {
-                    const nodo = document.getElementById(`nodo-${i}`);
-                    if (nodo) {
-                        const nodoPos = nodo.getAttribute('position');
-                        const nodoVisible = nodo.getAttribute('visible');
-                        const nodoRadius = nodo.getAttribute('radius');
-                        log(`Nodo ${i}: pos=${JSON.stringify(nodoPos)}, visible=${nodoVisible}, radius=${nodoRadius}`);
-                    }
-                }
-                
-                log('¿VES ALGUNA ESFERA DE COLOR? (roja, verde, azul, amarilla, magenta)');
-                log('Si ves alguna, dime cuál color y dónde está en la pantalla');
-                
-            }, 2000);
-            
-            log('=== COLOCACIÓN COMPLETADA CON MÚLTIPLES ESTRATEGIAS ===');
+            log('=== COLOCACIÓN COMPLETADA ===');
+            log('¿VES AHORA LA ESTRUCTURA? (nodos rojos numerados con líneas azules)');
+            log('Si la ves, dime dónde está en la pantalla');
+            log('Si aún no la ves, el problema puede ser el video de la cámara superponiéndose');
         }
         
         // Crear líneas entre nodos
@@ -867,7 +881,7 @@
             actualizarEstado(estructuraDeformada ? 'Mostrando deformaciones amplificadas' : 'Estructura en estado original');
         }
         
-        // Resetear
+        // Resetear (actualizado para limpiar elementos HTML)
         function resetear() {
             log('=== RESETEANDO APLICACIÓN ===');
             
@@ -880,20 +894,34 @@
             document.getElementById('camera-video').classList.remove('show');
             document.getElementById('touch-overlay').classList.remove('active');
             
+            // Limpiar estructura HTML AR
+            const arHtmlStructure = document.getElementById('ar-html-structure');
+            if (arHtmlStructure) {
+                arHtmlStructure.remove();
+                log('Estructura HTML AR eliminada');
+            }
+            
+            // Limpiar elementos de prueba A-Frame
+            const testElements = ['test-red', 'test-green', 'test-blue', 'test-yellow', 'test-magenta', 'overlay-3d'];
+            testElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.remove();
+            });
+            
             modoAR = false;
             estructuraColocada = false;
             estructuraDeformada = false;
             
             log('Variables de estado reseteadas');
             
-            // Limpiar líneas
+            // Limpiar líneas A-Frame
             for (let i = 1; i <= 8; i++) {
                 const linea = document.getElementById(`linea-${i}`);
                 if (linea) linea.remove();
             }
-            log('Líneas eliminadas');
+            log('Líneas A-Frame eliminadas');
             
-            // Resetear nodos a posiciones originales
+            // Resetear nodos A-Frame a posiciones originales
             for (let i = 0; i < 8; i++) {
                 const nodo = document.getElementById(`nodo-${i + 1}`);
                 if (nodo) {
@@ -901,15 +929,28 @@
                     nodo.setAttribute('color', '#ff4444');
                     nodo.setAttribute('radius', '0.3');
                     nodo.removeAttribute('material');
+                    nodo.setAttribute('visible', 'true');
+                    
+                    // Limpiar luces añadidas
+                    const luz = nodo.querySelector('a-light');
+                    if (luz) luz.remove();
                 }
             }
-            log('Nodos reseteados');
+            log('Nodos A-Frame reseteados');
             
             // Resetear plano base
             const basePlane = document.getElementById('base-plane');
             if (basePlane) {
                 basePlane.setAttribute('color', '#ffffff');
                 basePlane.setAttribute('opacity', '0.3');
+                basePlane.setAttribute('visible', 'true');
+            }
+            
+            // Resetear container principal
+            const container = document.getElementById('estructura-container');
+            if (container) {
+                container.setAttribute('visible', 'true');
+                container.removeAttribute('animation');
             }
             
             // Resetear botones
@@ -924,6 +965,7 @@
             cambiarA3D();
             
             log('=== RESET COMPLETADO ===');
+        } RESET COMPLETADO ===');
         }
         
         // Inicialización
