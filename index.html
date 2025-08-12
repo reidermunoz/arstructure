@@ -50,7 +50,7 @@
     </div>
 
     <a-scene background="color: #f0f0f0" 
-             camera="position: 10 5 10; look-at: 4 3 0"
+             camera="position: 4 3 12; look-at: 4 3 0"
              cursor="rayOrigin: mouse">
       
       <!-- Iluminación -->
@@ -58,7 +58,7 @@
       <a-light type="directional" position="10 10 5" color="#ffffff" intensity="0.8"></a-light>
       
       <!-- Plano de referencia (suelo) -->
-      <a-plane position="4 -0.5 0" 
+      <a-plane position="4 -1 0" 
                rotation="-90 0 0" 
                width="12" 
                height="8" 
@@ -69,13 +69,13 @@
       <!-- Grid de referencia -->
       <a-entity id="grid">
         <!-- Líneas verticales -->
-        <a-cylinder position="0 3 0.02" radius="0.01" height="6" color="#cccccc" opacity="0.5"></a-cylinder>
-        <a-cylinder position="4 3 0.02" radius="0.01" height="6" color="#cccccc" opacity="0.5"></a-cylinder>
-        <a-cylinder position="8 3 0.02" radius="0.01" height="6" color="#cccccc" opacity="0.5"></a-cylinder>
+        <a-cylinder position="0 3 -0.1" radius="0.01" height="6" color="#cccccc" opacity="0.3"></a-cylinder>
+        <a-cylinder position="4 3 -0.1" radius="0.01" height="6" color="#cccccc" opacity="0.3"></a-cylinder>
+        <a-cylinder position="8 3 -0.1" radius="0.01" height="6" color="#cccccc" opacity="0.3"></a-cylinder>
         <!-- Líneas horizontales -->
-        <a-cylinder position="4 0 0.02" radius="0.01" height="8" rotation="0 0 90" color="#cccccc" opacity="0.5"></a-cylinder>
-        <a-cylinder position="4 3 0.02" radius="0.01" height="8" rotation="0 0 90" color="#cccccc" opacity="0.5"></a-cylinder>
-        <a-cylinder position="4 6 0.02" radius="0.01" height="8" rotation="0 0 90" color="#cccccc" opacity="0.5"></a-cylinder>
+        <a-cylinder position="4 0 -0.1" radius="0.01" height="8" rotation="0 0 90" color="#cccccc" opacity="0.3"></a-cylinder>
+        <a-cylinder position="4 3 -0.1" radius="0.01" height="8" rotation="0 0 90" color="#cccccc" opacity="0.3"></a-cylinder>
+        <a-cylinder position="4 6 -0.1" radius="0.01" height="8" rotation="0 0 90" color="#cccccc" opacity="0.3"></a-cylinder>
       </a-entity>
 
       <!-- NODOS (Esferas) -->
@@ -236,18 +236,18 @@
               animation="property: rotation; to: 0 360 0; loop: true; dur: 20000"></a-text>
       
       <!-- Ejes de coordenadas -->
-      <a-entity id="ejes">
+      <a-entity id="ejes" position="-2 -1.5 0">
         <!-- Eje X (rojo) -->
-        <a-cylinder position="0.5 -1 0" radius="0.02" height="1" rotation="0 0 90" color="#ff0000"></a-cylinder>
-        <a-text value="X" position="1 -1 0" color="#ff0000" scale="0.8 0.8 0.8"></a-text>
+        <a-cylinder position="0.5 0 0" radius="0.03" height="1" rotation="0 0 90" color="#ff0000"></a-cylinder>
+        <a-text value="X" position="1.2 0 0" color="#ff0000" scale="1 1 1"></a-text>
         
         <!-- Eje Y (verde) -->
-        <a-cylinder position="0 -0.5 0" radius="0.02" height="1" color="#00ff00"></a-cylinder>
-        <a-text value="Y" position="0 0 0" color="#00ff00" scale="0.8 0.8 0.8"></a-text>
+        <a-cylinder position="0 0.5 0" radius="0.03" height="1" color="#00ff00"></a-cylinder>
+        <a-text value="Y" position="0 1.2 0" color="#00ff00" scale="1 1 1"></a-text>
         
         <!-- Eje Z (azul) -->
-        <a-cylinder position="0 -1 0.5" radius="0.02" height="1" rotation="90 0 0" color="#0000ff"></a-cylinder>
-        <a-text value="Z" position="0 -1 1" color="#0000ff" scale="0.8 0.8 0.8"></a-text>
+        <a-cylinder position="0 0 0.5" radius="0.03" height="1" rotation="90 0 0" color="#0000ff"></a-cylinder>
+        <a-text value="Z" position="0 0 1.2" color="#0000ff" scale="1 1 1"></a-text>
       </a-entity>
     </a-scene>
   </body>
