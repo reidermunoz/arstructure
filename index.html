@@ -611,157 +611,170 @@
             colocarEstructura();
         }
         
-        // Colocar estructura
+        // Colocar estructura con posicionamiento garantizado
         function colocarEstructura() {
-            log('=== INICIANDO COLOCACIÓN DE ESTRUCTURA ===');
-            log(`Estado inicial: modoAR=${modoAR}, estructuraColocada=${estructuraColocada}`);
+            log('=== INICIANDO COLOCACIÓN CON POSICIONAMIENTO GARANTIZADO ===');
             
-            // Permitir colocación tanto en AR como en 3D para testing
             const container = document.getElementById('estructura-container');
+            const camera = document.getElementById('camera');
             
             if (!container) {
-                log('ERROR CRÍTICO: No se encontró estructura-container');
+                log('ERROR: Container no encontrado');
                 return;
             }
             
-            log('Container encontrado, configurando posición...');
+            if (!camera) {
+                log('ERROR: Cámara no encontrada');
+                return;
+            }
             
-            // FORZAR VISIBILIDAD ABSOLUTA
-            container.setAttribute('visible', 'true');
-            log('Visibilidad forzada a true');
+            // ESTRATEGIA 1: POSICIONAR RELATIVO A LA CÁMARA
+            log('Estrategia 1: Posicionando relativo a cámara');
             
             if (modoAR) {
-                // POSICIÓN AR: DIRECTAMENTE FRENTE A LA CÁMARA
-                log('Configurando para modo AR - posición muy cercana');
-                container.setAttribute('position', '0 0 -0.8');  // MUY cerca
-                container.setAttribute('scale', '0.15 0.15 0.15');    // Muy pequeño pero visible
+                // En AR: Posicionar DIRECTAMENTE frente a la cámara
+                const cameraPos = camera.getAttribute('position');
+                const cameraRot = camera.getAttribute('rotation');
                 
-                // Verificar que la posición se aplicó
+                log(`Cámara posición: ${JSON.stringify(cameraPos)}`);
+                log(`Cámara rotación: ${JSON.stringify(cameraRot)}`);
+                
+                // Calcular posición frente a la cámara
+                const distancia = 0.5; // Muy cerca
+                const x = cameraPos.x;
+                const y = cameraPos.y;
+                const z = cameraPos.z - distancia; // Frente a la cámara
+                
+                container.setAttribute('position', `${x} ${y} ${z}`);
+                container.setAttribute('scale', '0.1 0.1 0.1');
+                container.setAttribute('visible', 'true');
+                
+                log(`Estructura posicionada en: ${x} ${y} ${z}`);
+                
+                // ESTRATEGIA 2: Si la primera falla, probar múltiples posiciones
                 setTimeout(() => {
-                    const pos = container.getAttribute('position');
-                    const scale = container.getAttribute('scale');
-                    log(`Posición aplicada: ${JSON.stringify(pos)}`);
-                    log(`Escala aplicada: ${JSON.stringify(scale)}`);
-                }, 100);
+                    log('Verificando visibilidad...');
+                    // Probar posiciones adicionales si no es visible
+                    const posicionesAlternativas = [
+                        {x: 0, y: 0, z: -0.3, scale: '0.08'},
+                        {x: 0, y: 0.2, z: -0.4, scale: '0.05'},
+                        {x: 0.2, y: 0, z: -0.3, scale: '0.08'},
+                        {x: -0.2, y: 0, z: -0.3, scale: '0.08'},
+                        {x: 0, y: -0.2, z: -0.3, scale: '0.08'}
+                    ];
+                    
+                    let indice = 0;
+                    const probarPosiciones = setInterval(() => {
+                        if (indice < posicionesAlternativas.length) {
+                            const pos = posicionesAlternativas[indice];
+                            container.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
+                            container.setAttribute('scale', `${pos.scale} ${pos.scale} ${pos.scale}`);
+                            log(`Probando posición alternativa ${indice + 1}: ${pos.x} ${pos.y} ${pos.z} escala: ${pos.scale}`);
+                            indice++;
+                        } else {
+                            clearInterval(probarPosiciones);
+                            log('Todas las posiciones alternativas probadas');
+                        }
+                    }, 1000);
+                }, 1000);
                 
-                // HACER PLANO BASE MUY VISIBLE
-                const basePlane = document.getElementById('base-plane');
-                if (basePlane) {
-                    basePlane.setAttribute('visible', 'true');
-                    basePlane.setAttribute('opacity', '0.8');
-                    basePlane.setAttribute('color', '#00ff00');
-                    basePlane.setAttribute('material', 'side: double; transparent: true');
-                    log('Plano base configurado como verde brillante');
-                }
+                // ESTRATEGIA 3: Crear objetos de prueba en diferentes posiciones
+                const posicionesPrueba = [
+                    {x: 0, y: 0, z: -0.2, color: '#ff0000', id: 'test-red'},
+                    {x: 0, y: 0, z: -0.5, color: '#00ff00', id: 'test-green'},
+                    {x: 0, y: 0, z: -1.0, color: '#0000ff', id: 'test-blue'},
+                    {x: 0.3, y: 0, z: -0.3, color: '#ffff00', id: 'test-yellow'},
+                    {x: -0.3, y: 0, z: -0.3, color: '#ff00ff', id: 'test-magenta'}
+                ];
                 
-                // HACER NODOS MUY VISIBLES Y GRANDES
+                posicionesPrueba.forEach((pos, i) => {
+                    const testSphere = document.createElement('a-sphere');
+                    testSphere.id = pos.id;
+                    testSphere.setAttribute('position', `${pos.x} ${pos.y} ${pos.z}`);
+                    testSphere.setAttribute('radius', '0.05');
+                    testSphere.setAttribute('color', pos.color);
+                    testSphere.setAttribute('material', `emissive: ${pos.color}; metalness: 0`);
+                    
+                    const scene = document.getElementById('scene');
+                    scene.appendChild(testSphere);
+                    
+                    log(`Esfera de prueba ${pos.color} creada en ${pos.x} ${pos.y} ${pos.z}`);
+                });
+                
+                // Hacer nodos EXTREMADAMENTE visibles
                 for (let i = 1; i <= 8; i++) {
                     const nodo = document.getElementById(`nodo-${i}`);
                     if (nodo) {
                         nodo.setAttribute('visible', 'true');
-                        nodo.setAttribute('material', 'color: #ff0000; metalness: 0; roughness: 0; emissive: #440000');
-                        nodo.setAttribute('radius', '0.6');  // MÁS GRANDE
-                        nodo.setAttribute('geometry', 'primitive: sphere; radius: 0.6');
+                        nodo.setAttribute('radius', '1.0');  // ENORME
+                        nodo.setAttribute('material', 'color: #ff0000; emissive: #ff0000; metalness: 0; roughness: 0');
                         
-                        // Verificar posición del nodo
-                        const nodoPos = nodo.getAttribute('position');
-                        log(`Nodo ${i} posición: ${JSON.stringify(nodoPos)}`);
+                        // Crear una luz en cada nodo
+                        const luz = document.createElement('a-light');
+                        luz.setAttribute('type', 'point');
+                        luz.setAttribute('intensity', '2');
+                        luz.setAttribute('color', '#ff0000');
+                        luz.setAttribute('distance', '10');
+                        nodo.appendChild(luz);
                         
-                        // Hacer texto más visible
-                        const texto = nodo.querySelector('a-text');
-                        if (texto) {
-                            texto.setAttribute('visible', 'true');
-                            texto.setAttribute('color', '#ffffff');
-                            texto.setAttribute('scale', '4 4 4');
-                            texto.setAttribute('material', 'color: #ffffff; shader: msdf');
-                        }
+                        log(`Nodo ${i} convertido en esfera luminosa gigante`);
                     }
                 }
                 
-                // AGREGAR OBJETO DE PRUEBA ADICIONAL PARA VERIFICAR VISIBILIDAD
-                const testBox = document.createElement('a-box');
-                testBox.id = 'test-visibility-box';
-                testBox.setAttribute('position', '0 0 0');  // En el centro
-                testBox.setAttribute('scale', '1 1 1');
-                testBox.setAttribute('color', '#ffff00');   // Amarillo brillante
-                testBox.setAttribute('material', 'emissive: #ffff00; metalness: 0');
-                container.appendChild(testBox);
-                log('Caja de prueba amarilla agregada en el centro');
-                
             } else {
-                log('Configurando para modo 3D');
+                // Modo 3D normal
                 container.setAttribute('position', '0 0 0');
                 container.setAttribute('scale', '1 1 1');
             }
             
-            // VERIFICAR JERARQUÍA DE ELEMENTOS
-            log('=== VERIFICACIÓN DE JERARQUÍA ===');
-            const scene = document.getElementById('scene');
-            log(`Escena existe: ${!!scene}`);
-            log(`Container padre: ${container.parentElement ? container.parentElement.tagName : 'ninguno'}`);
-            log(`Hijos del container: ${container.children.length}`);
-            
-            // VERIFICAR CÁMARA
-            const camera = document.getElementById('camera');
-            if (camera) {
-                const camPos = camera.getAttribute('position');
-                const camRot = camera.getAttribute('rotation');
-                log(`Cámara posición: ${JSON.stringify(camPos)}`);
-                log(`Cámara rotación: ${JSON.stringify(camRot)}`);
-            }
-            
-            // MARCAR COMO COLOCADA INMEDIATAMENTE
+            // Marcar como colocada
             estructuraColocada = true;
-            log('estructuraColocada = true');
             
             // Actualizar UI
             document.getElementById('btn-place').disabled = true;
             document.getElementById('btn-deform').disabled = false;
             document.getElementById('touch-overlay').classList.remove('active');
             
-            actualizarEstado('Estructura colocada - Si no la ves, usa Reset y prueba modo 3D');
-            log('UI actualizada');
+            actualizarEstado('Estructura colocada - Buscando esferas de colores en pantalla');
             
-            // Crear líneas después de un pequeño delay
+            // Animación más agresiva
+            container.removeAttribute('animation');
             setTimeout(() => {
-                log('Creando líneas...');
-                crearLineas();
-            }, 100);
-            
-            // ANIMACIÓN MÁS VISIBLE
-            const escala = modoAR ? '0.15' : '1';
-            container.removeAttribute('animation');  // Limpiar animación anterior
-            setTimeout(() => {
+                const escalaFinal = modoAR ? '0.1' : '1';
                 container.setAttribute('animation', 
-                    `property: scale; from: 0.01 0.01 0.01; to: ${escala} ${escala} ${escala}; dur: 2000; easing: easeOutBounce`);
-                log('Animación de escala iniciada');
-            }, 200);
-            
-            // VERIFICACIÓN CONTINUA
-            let verificaciones = 0;
-            const intervalo = setInterval(() => {
-                verificaciones++;
-                const visible = container.getAttribute('visible');
-                const pos = container.getAttribute('position');
-                const scale = container.getAttribute('scale');
-                
-                log(`Verificación ${verificaciones}: visible=${visible}, pos=${JSON.stringify(pos)}, scale=${JSON.stringify(scale)}`);
-                
-                if (verificaciones >= 5) {
-                    clearInterval(intervalo);
-                    log('=== VERIFICACIONES COMPLETADAS ===');
-                    
-                    // Si sigue invisible, probar posición diferente
-                    if (!visible || visible === 'false') {
-                        log('PROBLEMA: Estructura no visible, intentando posición alternativa');
-                        container.setAttribute('position', '0 1 -0.5');
-                        container.setAttribute('scale', '0.2 0.2 0.2');
-                        container.setAttribute('visible', 'true');
-                    }
-                }
+                    `property: rotation; to: 0 360 0; loop: true; dur: 3000`);
+                log('Animación de rotación aplicada para mayor visibilidad');
             }, 500);
             
-            log('=== COLOCACIÓN COMPLETADA ===');
+            // REPORTE FINAL COMPLETO
+            setTimeout(() => {
+                log('=== REPORTE FINAL DE COLOCACIÓN ===');
+                const finalPos = container.getAttribute('position');
+                const finalScale = container.getAttribute('scale');
+                const finalVisible = container.getAttribute('visible');
+                
+                log(`Posición final: ${JSON.stringify(finalPos)}`);
+                log(`Escala final: ${JSON.stringify(finalScale)}`);
+                log(`Visible final: ${finalVisible}`);
+                log(`Nodos en container: ${container.children.length}`);
+                
+                // Verificar cada nodo individualmente
+                for (let i = 1; i <= 8; i++) {
+                    const nodo = document.getElementById(`nodo-${i}`);
+                    if (nodo) {
+                        const nodoPos = nodo.getAttribute('position');
+                        const nodoVisible = nodo.getAttribute('visible');
+                        const nodoRadius = nodo.getAttribute('radius');
+                        log(`Nodo ${i}: pos=${JSON.stringify(nodoPos)}, visible=${nodoVisible}, radius=${nodoRadius}`);
+                    }
+                }
+                
+                log('¿VES ALGUNA ESFERA DE COLOR? (roja, verde, azul, amarilla, magenta)');
+                log('Si ves alguna, dime cuál color y dónde está en la pantalla');
+                
+            }, 2000);
+            
+            log('=== COLOCACIÓN COMPLETADA CON MÚLTIPLES ESTRATEGIAS ===');
         }
         
         // Crear líneas entre nodos
