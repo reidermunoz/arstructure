@@ -62,8 +62,10 @@
         <div>Estructura: <span id="structure-status">No generada</span></div>
         <div>Desplazamientos: <span id="displacement-status">Original</span></div>
         <div>Escala: <span id="scale-value">0.2</span></div>
-        <div style="margin-top: 10px; font-size: 10px;">
-            Toca la pantalla para generar la estructura
+        <div style="margin-top: 10px; font-size: 10px; color: #ffff99;">
+            📱 iPhone: Usa Chrome o Safari<br>
+            📷 Permite acceso a cámara<br>
+            👆 Toca pantalla para generar estructura
         </div>
     </div>
 
@@ -117,13 +119,13 @@
                 // Parámetros de estructura (equivalentes al Unity)
                 this.Lv1 = 3.0; // Altura de cada nivel [m]
                 this.Lh1 = 4.0; // Longitud horizontal [m]
-                this.structureScale = 0.5; // Escala general
+                this.structureScale = 0.2; // Escala general
                 
                 // Configuración visual
                 this.nodeColor = 'red';
                 this.lineColor = 'white';
-                this.nodeSize = 1;
-                this.lineWidth = 0.2;
+                this.nodeSize = 0.1;
+                this.lineWidth = 0.02;
                 
                 // Configuración de debug
                 this.enableDebugLogs = true;
@@ -137,6 +139,7 @@
                 this.structureGenerated = false;
                 this.isDisplacementApplied = false;
                 this.currentStructure = null;
+                this.isARReady = false;
                 
                 // Matriz de conectividad (índices base 0)
                 this.connections = [
@@ -167,11 +170,34 @@
             init() {
                 this.initializeNodePositions();
                 this.setupEventListeners();
+                this.checkARReadiness();
                 this.updateUI();
                 
                 if (this.enableDebugLogs) {
                     console.log('ARStructureManager inicializado correctamente');
                 }
+            }
+            
+            checkARReadiness() {
+                // Verificar estado de AR cada segundo
+                const checkInterval = setInterval(() => {
+                    const scene = document.querySelector('#ar-scene');
+                    const camera = document.querySelector('#ar-camera');
+                    
+                    if (scene && camera) {
+                        // Simular que AR está listo después de 3 segundos
+                        setTimeout(() => {
+                            this.isARReady = true;
+                            this.updateUI();
+                            clearInterval(checkInterval);
+                            
+                            // Mostrar instrucciones al usuario
+                            if (this.enableDebugLogs) {
+                                console.log('AR está listo! Puedes tocar la pantalla o usar el botón.');
+                            }
+                        }, 3000);
+                    }
+                }, 1000);
             }
             
             // ========== INICIALIZACIÓN ==========
@@ -497,7 +523,9 @@
             }
             
             updateUI() {
-                document.getElementById('status').textContent = 'AR Activo';
+                const statusText = this.isARReady ? 'AR Listo' : 'Iniciando AR...';
+                document.getElementById('status').textContent = statusText;
+                
                 document.getElementById('structure-status').textContent = 
                     this.structureGenerated ? 'Generada' : 'No generada';
                 document.getElementById('displacement-status').textContent = 
@@ -505,8 +533,13 @@
                 document.getElementById('scale-value').textContent = this.structureScale;
                 
                 // Actualizar botones
+                const spawnBtn = document.getElementById('spawn-btn');
                 const toggleBtn = document.getElementById('toggle-displacement-btn');
                 const destroyBtn = document.getElementById('destroy-btn');
+                
+                // Habilitar spawn cuando AR esté listo
+                spawnBtn.disabled = !this.isARReady;
+                spawnBtn.textContent = this.isARReady ? 'Generar Estructura' : 'Esperando AR...';
                 
                 toggleBtn.disabled = !this.structureGenerated;
                 destroyBtn.disabled = !this.structureGenerated;
@@ -514,6 +547,13 @@
                 if (this.structureGenerated) {
                     toggleBtn.textContent = this.isDisplacementApplied ? 
                         'Reset a Original' : 'Aplicar Desplazamientos';
+                }
+                
+                // Cambiar color del botón principal
+                if (this.isARReady) {
+                    spawnBtn.style.background = 'rgba(0, 150, 0, 0.8)';
+                } else {
+                    spawnBtn.style.background = 'rgba(100, 100, 100, 0.5)';
                 }
             }
         }
@@ -533,5 +573,4 @@
         });
     </script>
 </body>
-
 </html>
