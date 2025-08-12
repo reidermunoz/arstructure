@@ -5,37 +5,6 @@
     <title>Estructura de Nodos y Elementos • A-Frame</title>
     <meta name="description" content="Visualización 3D de estructura con nodos y elementos conectados">
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
-    <script>
-      // ESCALA DE LA ESTRUCTURA - Cambiar aquí para escalar toda la estructura
-      const ESCALA = 0.1; // Factor de escala (0.1 = 10% del tamaño original)
-      
-      // Aplicar escala cuando cargue la página
-      window.addEventListener('DOMContentLoaded', function() {
-        const estructura = document.getElementById('estructura-principal');
-        const camara = document.getElementById('camara-principal');
-        
-        // Aplicar la escala a la estructura
-        estructura.setAttribute('scale', `${ESCALA} ${ESCALA} ${ESCALA}`);
-        
-        // Calcular posición de cámara basada en la escala
-        const Lv1 = 3, Lh1 = 4;
-        const dimensionX = Lh1 * 2 * ESCALA;
-        const dimensionY = Lv1 * 2 * ESCALA;
-        const centroX = dimensionX / 2;
-        const centroY = dimensionY / 2;
-        
-        // Ajustar cámara para vista desde arriba y lejos
-        const distanciaOptima = Math.max(dimensionX, dimensionY) * 8;
-        const alturaOptima = dimensionY * 3;
-        
-        camara.setAttribute('position', `${centroX} ${alturaOptima} ${distanciaOptima}`);
-        camara.setAttribute('look-at', `${centroX} ${centroY} 0`);
-        
-        console.log(`Escala aplicada: ${ESCALA}`);
-        console.log(`Dimensiones escaladas: ${dimensionX.toFixed(3)} x ${dimensionY.toFixed(3)}`);
-        console.log(`Posición cámara: [${centroX.toFixed(3)}, ${alturaOptima.toFixed(3)}, ${distanciaOptima.toFixed(3)}]`);
-      });
-    </script>
     <style>
       body {
         margin: 0;
@@ -91,6 +60,13 @@
         transform: scale(1.05);
         box-shadow: 0 4px 8px rgba(0,0,0,0.3);
       }
+      .debug-info {
+        margin-top: 10px;
+        font-size: 10px;
+        color: #ccc;
+        max-height: 150px;
+        overflow-y: auto;
+      }
     </style>
   </head>
   <body>
@@ -98,9 +74,12 @@
       <h3>Estructura de Nodos y Elementos</h3>
       <p><strong>Nodos:</strong> 8 (esferas rojas)</p>
       <p><strong>Elementos:</strong> 8 (líneas azules)</p>
-      <p><strong>Escala:</strong> 1.0 (tamaño original)</p>
-      <p><strong>Dimensiones:</strong> 8m × 6m</p>
-      <p><strong>Amplificación:</strong> 10,000x</p>
+      <p><strong>Escala:</strong> 0.3 (30% del tamaño original)</p>
+      <p><strong>Dimensiones escaladas:</strong> 2.4m × 1.8m</p>
+      <p><strong>Amplificación:</strong> 50,000x</p>
+      <div id="debug-info" class="debug-info">
+        <strong>Debug:</strong> Presiona el botón para ver deformaciones...
+      </div>
     </div>
     
     <div class="deformation-control">
@@ -113,8 +92,7 @@
       Mouse: Rotar vista | WASD: Moverse | VR: Botón inferior derecho
     </div>
 
-    <a-scene background="color: #f0f0f0" 
-             cursor="rayOrigin: mouse">
+    <a-scene background="color: #f0f0f0" cursor="rayOrigin: mouse">
       
       <!-- Iluminación -->
       <a-light type="ambient" color="#404040"></a-light>
@@ -219,7 +197,7 @@
 
         <!-- ELEMENTOS (Líneas/Cilindros conectando nodos) -->
         <!-- Elemento 1: Nodo 1-2 [0,0] to [0,3] -->
-        <a-cylinder position="0 1.5 0" 
+        <a-cylinder id="elemento-1" position="0 1.5 0" 
                     radius="0.15" 
                     height="3" 
                     color="#4488ff"
@@ -228,7 +206,7 @@
         </a-cylinder>
         
         <!-- Elemento 2: Nodo 2-3 [0,3] to [0,6] -->
-        <a-cylinder position="0 4.5 0" 
+        <a-cylinder id="elemento-2" position="0 4.5 0" 
                     radius="0.15" 
                     height="3" 
                     color="#4488ff"
@@ -237,7 +215,7 @@
         </a-cylinder>
         
         <!-- Elemento 3: Nodo 3-4 [0,6] to [4,6] -->
-        <a-cylinder position="2 6 0" 
+        <a-cylinder id="elemento-3" position="2 6 0" 
                     radius="0.15" 
                     height="4" 
                     rotation="0 0 90" 
@@ -247,7 +225,7 @@
         </a-cylinder>
         
         <!-- Elemento 4: Nodo 4-5 [4,6] to [4,3] -->
-        <a-cylinder position="4 4.5 0" 
+        <a-cylinder id="elemento-4" position="4 4.5 0" 
                     radius="0.15" 
                     height="3" 
                     color="#4488ff"
@@ -256,7 +234,7 @@
         </a-cylinder>
         
         <!-- Elemento 5: Nodo 2-5 [0,3] to [4,3] -->
-        <a-cylinder position="2 3 0" 
+        <a-cylinder id="elemento-5" position="2 3 0" 
                     radius="0.15" 
                     height="4" 
                     rotation="0 0 90" 
@@ -266,7 +244,7 @@
         </a-cylinder>
         
         <!-- Elemento 6: Nodo 5-6 [4,3] to [4,0] -->
-        <a-cylinder position="4 1.5 0" 
+        <a-cylinder id="elemento-6" position="4 1.5 0" 
                     radius="0.15" 
                     height="3" 
                     color="#4488ff"
@@ -275,7 +253,7 @@
         </a-cylinder>
         
         <!-- Elemento 7: Nodo 5-7 [4,3] to [8,3] -->
-        <a-cylinder position="6 3 0" 
+        <a-cylinder id="elemento-7" position="6 3 0" 
                     radius="0.15" 
                     height="4" 
                     rotation="0 0 90" 
@@ -285,7 +263,7 @@
         </a-cylinder>
         
         <!-- Elemento 8: Nodo 7-8 [8,3] to [8,0] -->
-        <a-cylinder position="8 1.5 0" 
+        <a-cylinder id="elemento-8" position="8 1.5 0" 
                     radius="0.15" 
                     height="3" 
                     color="#4488ff"
@@ -318,14 +296,219 @@
       </a-entity>
       
       <!-- Cámara posicionada dinámicamente -->
-      <a-camera id="camara-principal" 
-                wasd-controls="acceleration: 5">
-      </a-camera>
+      <a-camera id="camara-principal" wasd-controls="acceleration: 5"></a-camera>
     </a-scene>
 
     <script>
-      // Inicialización simple - la escala ya está aplicada en el HTML
-      console.log('Estructura cargada con funcionalidad de deformación');
+      // ESCALA DE LA ESTRUCTURA - Cambiar aquí para escalar toda la estructura
+      const ESCALA = 0.3; // Factor de escala (0.3 = 30% del tamaño original)
+      
+      // Datos de desplazamientos (X, Y en metros, Rotación en radianes)
+      // Copiados exactamente del código Unity Vector3[] nodeDisplacements
+      const desplazamientos = [
+        {x: 0, y: 0, rot: 0}, // Nodo 1 - new Vector3(0f, 0f, 0f)
+        {x: -0.000214334467084222, y: -2.92585497916779e-05, rot: 0.000299282917049326}, // Nodo 2
+        {x: -4.51228548254704e-05, y: -5.91445463001043e-05, rot: -0.00125414567113917}, // Nodo 3
+        {x: -5.26077882706616e-05, y: -7.62472910434113e-05, rot: 0.00121519336768121}, // Nodo 4
+        {x: -0.000205459371218351, y: -4.61332875518377e-05, rot: -0.000475039410395658}, // Nodo 5
+        {x: 0, y: 0, rot: 0}, // Nodo 6 - new Vector3(0f, 0f, 0f)
+        {x: -0.000209509318349148, y: -1.46081626564844e-05, rot: 0.000595291931114151}, // Nodo 7
+        {x: 0, y: 0, rot: 0} // Nodo 8 - new Vector3(0f, 0f, 0f)
+      ];
+      
+      // Factor de amplificación para hacer visibles los desplazamientos microscópicos
+      const FACTOR_AMPLIFICACION = 8000; // 50,000x amplificación
+      
+      let estructuraDeformada = false;
+      
+      // Conectividad de elementos (qué nodos conecta cada elemento)
+      const conectividad = [
+        [0, 1], // Elemento 1: Nodo 1-2
+        [1, 2], // Elemento 2: Nodo 2-3
+        [2, 3], // Elemento 3: Nodo 3-4
+        [3, 4], // Elemento 4: Nodo 4-5
+        [1, 4], // Elemento 5: Nodo 2-5
+        [4, 5], // Elemento 6: Nodo 5-6
+        [4, 6], // Elemento 7: Nodo 5-7
+        [6, 7]  // Elemento 8: Nodo 7-8
+      ];
+      
+      // Función para calcular posición y orientación de un elemento entre dos nodos
+      function actualizarElemento(elementoId, nodo1Pos, nodo2Pos) {
+        const elemento = document.getElementById(elementoId);
+        if (!elemento) return;
+        
+        // Calcular punto medio
+        const centroX = (nodo1Pos.x + nodo2Pos.x) / 2;
+        const centroY = (nodo1Pos.y + nodo2Pos.y) / 2;
+        
+        // Calcular diferencias
+        const dx = nodo2Pos.x - nodo1Pos.x;
+        const dy = nodo2Pos.y - nodo1Pos.y;
+        
+        // Calcular distancia (longitud del elemento)
+        const longitud = Math.sqrt(dx * dx + dy * dy);
+        
+        // Los cilindros en A-Frame están orientados verticalmente por defecto (a lo largo del eje Y)
+        // Para orientarlos correctamente necesitamos calcular la rotación
+        let rotX = 0, rotY = 0, rotZ = 0;
+        
+        if (Math.abs(dx) > 0.01) {
+          // Elemento tiene componente horizontal
+          if (Math.abs(dy) < 0.01) {
+            // Elemento puramente horizontal
+            rotZ = 90;
+          } else {
+            // Elemento diagonal
+            rotZ = Math.atan2(dx, dy) * (180 / Math.PI);
+          }
+        }
+        // Si es vertical (solo dy), no necesita rotación (rotZ = 0)
+        
+        // Aplicar nuevas transformaciones
+        elemento.setAttribute('position', {x: centroX, y: centroY, z: 0});
+        elemento.setAttribute('rotation', {x: rotX, y: rotY, z: rotZ});
+        elemento.setAttribute('height', longitud);
+        
+        console.log(`  ${elementoId}: centro=[${centroX.toFixed(2)}, ${centroY.toFixed(2)}], longitud=${longitud.toFixed(2)}, dx=${dx.toFixed(2)}, dy=${dy.toFixed(2)}, rotZ=${rotZ.toFixed(1)}°`);
+      }
+      
+      // Posiciones originales de los nodos (coordenadas MATLAB)
+      const posicionesOriginales = [
+        [0, 0], [0, 3], [0, 6], [4, 6], [4, 3], [4, 0], [8, 3], [8, 0]
+      ];
+      
+      // Array para almacenar posiciones actuales de los nodos
+      let posicionesActuales = [];
+      
+      // FUNCIÓN para alternar entre estructura original y deformada
+      function toggleDeformacion() {
+        console.log('=== TOGGLE DEFORMACIÓN ===');
+        estructuraDeformada = !estructuraDeformada;
+        const boton = document.getElementById('btn-deformacion');
+        const debugInfo = document.getElementById('debug-info');
+        
+        console.log(`Estado: ${estructuraDeformada ? 'DEFORMADA' : 'ORIGINAL'}`);
+        console.log(`Factor de amplificación: ${FACTOR_AMPLIFICACION}x`);
+        
+        let debugText = `<strong>Estado:</strong> ${estructuraDeformada ? 'DEFORMADA' : 'ORIGINAL'}<br>`;
+        debugText += `<strong>Amplificación:</strong> ${FACTOR_AMPLIFICACION}x<br><br>`;
+        
+        // Reinicializar array de posiciones actuales
+        posicionesActuales = [];
+        
+        for (let i = 0; i < 8; i++) {
+          const nodo = document.getElementById(`nodo-${i + 1}`);
+          
+          if (nodo) {
+            let x, y;
+            
+            if (estructuraDeformada) {
+              // Aplicar desplazamientos amplificados
+              const desplX = desplazamientos[i].x * FACTOR_AMPLIFICACION;
+              const desplY = desplazamientos[i].y * FACTOR_AMPLIFICACION;
+              x = posicionesOriginales[i][0] + desplX;
+              y = posicionesOriginales[i][1] + desplY;
+              const rotZ = desplazamientos[i].rot * (180 / Math.PI) * FACTOR_AMPLIFICACION; // rad to deg
+              
+              console.log(`NODO ${i + 1}:`);
+              console.log(`  Unity: [${desplazamientos[i].x}, ${desplazamientos[i].y}, ${desplazamientos[i].rot}]`);
+              console.log(`  Amplificado: [${desplX.toFixed(3)}, ${desplY.toFixed(3)}, ${rotZ.toFixed(1)}°]`);
+              console.log(`  Nueva pos: [${x.toFixed(3)}, ${y.toFixed(3)}]`);
+              
+              // Aplicar transformaciones usando A-Frame API
+              nodo.setAttribute('position', {x: x, y: y, z: 0});
+              nodo.setAttribute('rotation', {x: 0, y: 0, z: rotZ});
+              nodo.setAttribute('material', 'color', '#ff8844'); // Color naranja para deformada
+              
+              if (desplX !== 0 || desplY !== 0 || rotZ !== 0) {
+                debugText += `<span style="color: #ff8844;">N${i + 1}: [${x.toFixed(1)}, ${y.toFixed(1)}] rot:${rotZ.toFixed(0)}°</span><br>`;
+              } else {
+                debugText += `N${i + 1}: [${x}, ${y}] sin desplazamiento<br>`;
+              }
+              
+            } else {
+              // Restaurar posiciones originales
+              x = posicionesOriginales[i][0];
+              y = posicionesOriginales[i][1];
+              
+              nodo.setAttribute('position', {x: x, y: y, z: 0});
+              nodo.setAttribute('rotation', {x: 0, y: 0, z: 0});
+              nodo.setAttribute('material', 'color', '#ff4444'); // Color rojo original
+              
+              console.log(`NODO ${i + 1} restaurado: [${x}, ${y}]`);
+              debugText += `N${i + 1}: [${x}, ${y}] original<br>`;
+            }
+            
+            // Guardar posición actual para cálculo de elementos
+            posicionesActuales[i] = {x: x, y: y};
+            
+          } else {
+            console.error(`❌ No se encontró nodo-${i + 1}`);
+            debugText += `<span style="color: #ff4444;">N${i + 1}: ERROR - No encontrado</span><br>`;
+          }
+        }
+        
+        // Actualizar elementos (líneas) basándose en las nuevas posiciones de nodos
+        console.log('Actualizando elementos...');
+        for (let i = 0; i < conectividad.length; i++) {
+          const nodo1Idx = conectividad[i][0];
+          const nodo2Idx = conectividad[i][1];
+          const elementoId = `elemento-${i + 1}`;
+          
+          if (posicionesActuales[nodo1Idx] && posicionesActuales[nodo2Idx]) {
+            actualizarElemento(elementoId, posicionesActuales[nodo1Idx], posicionesActuales[nodo2Idx]);
+          }
+        }
+        
+        // Actualizar info en pantalla
+        if (debugInfo) {
+          debugInfo.innerHTML = debugText;
+        }
+        
+        // Actualizar botón
+        if (boton) {
+          boton.textContent = estructuraDeformada ? 'Mostrar Original' : 'Mostrar Deformada';
+          boton.style.backgroundColor = estructuraDeformada ? '#ff6644' : '#4488ff';
+        }
+        
+        console.log(`=== ${estructuraDeformada ? 'DEFORMACIÓN APLICADA' : 'ESTRUCTURA RESTAURADA'} ===`);
+      }
+      
+      // Aplicar escala cuando cargue la página
+      window.addEventListener('DOMContentLoaded', function() {
+        const estructura = document.getElementById('estructura-principal');
+        const camara = document.getElementById('camara-principal');
+        const boton = document.getElementById('btn-deformacion');
+        
+        // Configurar event listener del botón
+        if (boton) {
+          boton.addEventListener('click', toggleDeformacion);
+          console.log('✅ Botón de deformación configurado');
+        }
+        
+        // Aplicar la escala a la estructura
+        estructura.setAttribute('scale', `${ESCALA} ${ESCALA} ${ESCALA}`);
+        
+        // Calcular posición de cámara basada en la escala
+        const Lv1 = 3, Lh1 = 4;
+        const dimensionX = Lh1 * 2 * ESCALA;
+        const dimensionY = Lv1 * 2 * ESCALA;
+        const centroX = dimensionX / 2;
+        const centroY = dimensionY / 2;
+        
+        // Ajustar cámara para vista desde arriba y lejos
+        const distanciaOptima = Math.max(dimensionX, dimensionY) * 8;
+        const alturaOptima = dimensionY * 3;
+        
+        camara.setAttribute('position', `${centroX} ${alturaOptima} ${distanciaOptima}`);
+        camara.setAttribute('look-at', `${centroX} ${centroY} 0`);
+        
+        console.log(`Escala aplicada: ${ESCALA}`);
+        console.log(`Dimensiones escaladas: ${dimensionX.toFixed(3)} x ${dimensionY.toFixed(3)}`);
+        console.log(`Posición cámara: [${centroX.toFixed(3)}, ${alturaOptima.toFixed(3)}, ${distanciaOptima.toFixed(3)}]`);
+        console.log('🚀 Sistema de deformación listo');
+      });
     </script>
   </body>
 </html>
