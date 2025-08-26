@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AR Simple - Objetos Fijos</title>
+    <title>WebXR AR - Detección de Superficies</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <style>
         .info {
             position: fixed;
@@ -15,7 +15,8 @@
             border-radius: 5px;
             z-index: 100;
             font-size: 12px;
-            max-width: 280px;
+            max-width: 300px;
+            line-height: 1.4;
         }
         .controls {
             position: fixed;
@@ -35,95 +36,280 @@
             border-radius: 5px;
             margin: 0 5px;
             cursor: pointer;
+            font-size: 12px;
+        }
+        .status {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 100;
+            text-align: center;
+            max-width: 280px;
+        }
+        .webxr-support {
+            background: #28a745;
+        }
+        .webxr-unsupported {
+            background: #dc3545;
         }
     </style>
 </head>
 <body style="margin: 0; overflow: hidden;">
     
     <div class="info">
-        <strong>AR BÁSICO:</strong><br>
-        • Los objetos aparecen a distancia fija<br>
-        • Se quedan en coordenadas del mundo<br>
-        • Toca "Colocar" para añadir más<br>
-        • No es detección real, pero funciona
+        <strong>WebXR AR - DETECCIÓN REAL:</strong><br>
+        • Funciona solo en Chrome Android con ARCore<br>
+        • Detecta superficies automáticamente<br>
+        • Toca las superficies para colocar objetos<br>
+        • Los objetos se anclan físicamente
     </div>
     
-    <div class="controls">
-        <button onclick="placeObject()">📍 Colocar</button>
-        <button onclick="clearAll()">🧹 Limpiar</button>
+    <div class="status" id="status">
+        🔍 Verificando soporte WebXR...
+    </div>
+    
+    <div class="controls" style="display: none;" id="controls">
+        <button onclick="enterAR()" id="ar-button">🚀 Iniciar AR</button>
+        <button onclick="placeObject()" id="place-button" style="display: none;">📍 Colocar</button>
+        <button onclick="clearObjects()" id="clear-button" style="display: none;">🧹 Limpiar</button>
     </div>
 
     <a-scene 
+        id="scene"
         embedded 
-        arjs="sourceType: webcam; debugUIEnabled: false;"
-        vr-mode-ui="enabled: false">
+        webxr="requiredFeatures: hit-test,local-floor;"
+        ar-hit-test="target: #reticle; type: footprint"
+        cursor="rayOrigin: mouse"
+        raycaster="objects: [ar-hit-test]">
         
-        <!-- Objetos que aparecen en coordenadas fijas del mundo -->
-        <a-entity id="world-objects">
-            
-            <!-- Estos están en posiciones absolutas del mundo -->
-            <a-box 
-                position="0 0 -2" 
-                color="#4CC3D9" 
-                scale="0.5 0.5 0.5"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 4000">
-            </a-box>
-            
-            <a-sphere 
-                position="1 0.5 -3" 
-                radius="0.3" 
-                color="#EF2D5E">
-            </a-sphere>
-            
-            <a-text 
-                value="Objetos en el mundo" 
-                position="0 1 -2" 
-                color="white" 
-                align="center">
-            </a-text>
-            
+        <!-- Assets -->
+        <a-assets>
+            <a-mixin id="cube" 
+                     geometry="primitive: box; width: 0.3; height: 0.3; depth: 0.3"
+                     material="color: #4CC3D9; roughness: 0.3; metalness: 0.2">
+            </a-mixin>
+            <a-mixin id="sphere" 
+                     geometry="primitive: sphere; radius: 0.15"
+                     material="color: #EF2D5E; roughness: 0.3; metalness: 0.2">
+            </a-mixin>
+        </a-assets>
+        
+        <!-- Reticle para mostrar donde se puede colocar -->
+        <a-entity id="reticle" 
+                  geometry="primitive: ring; radiusInner: 0.15; radiusOuter: 0.2" 
+                  material="color: white; opacity: 0.8"
+                  rotation="-90 0 0"
+                  visible="false"
+                  animation="property: rotation; to: -90 360 0; loop: true; dur: 2000">
         </a-entity>
         
-        <a-camera></a-camera>
+        <!-- Contenedor para objetos AR -->
+        <a-entity id="ar-objects"></a-entity>
+        
+        <!-- Luces para mejor visualización -->
+        <a-light type="ambient" color="#404040" intensity="0.4"></a-light>
+        <a-light type="directional" position="0 1 0" color="#ffffff" intensity="0.8"></a-light>
+        
+        <!-- Cámara WebXR -->
+        <a-entity id="cameraRig" position="0 1.6 3">
+            <a-camera id="camera" 
+                      look-controls="pointerLockEnabled: false"
+                      wasd-controls="enabled: false"
+                      cursor="rayOrigin: mouse">
+            </a-camera>
+        </a-entity>
     </a-scene>
 
     <script>
-        let count = 0;
+        let arSession = null;
+        let hitTestSource = null;
+        let objectCount = 0;
+        let reticle, scene, camera;
         
+        // Componente para hit testing WebXR
+        AFRAME.registerComponent('ar-hit-test', {
+            schema: {
+                target: {type: 'selector'},
+                type: {type: 'string', default: 'footprint'}
+            },
+            
+            init: function() {
+                this.scene = this.el.sceneEl;
+                this.data.target = this.data.target || this.el;
+                
+                this.scene.addEventListener('enter-vr', () => {
+                    this.onEnterVR();
+                });
+                
+                this.scene.addEventListener('exit-vr', () => {
+                    this.onExitVR();
+                });
+            },
+            
+            onEnterVR: function() {
+                if (!this.scene.is('ar-mode')) return;
+                
+                const session = this.scene.renderer.xr.getSession();
+                if (session) {
+                    this.requestHitTestSource(session);
+                }
+            },
+            
+            onExitVR: function() {
+                hitTestSource = null;
+            },
+            
+            requestHitTestSource: async function(session) {
+                try {
+                    const referenceSpace = await session.requestReferenceSpace('viewer');
+                    hitTestSource = await session.requestHitTestSource({ space: referenceSpace });
+                    console.log('Hit test source creado');
+                    
+                    document.getElementById('place-button').style.display = 'inline-block';
+                    document.getElementById('clear-button').style.display = 'inline-block';
+                    
+                } catch (error) {
+                    console.warn('Error al crear hit test source:', error);
+                }
+            },
+            
+            tick: function() {
+                if (!hitTestSource || !this.scene.is('ar-mode')) return;
+                
+                const frame = this.scene.renderer.xr.getFrame();
+                const session = this.scene.renderer.xr.getSession();
+                
+                if (frame && session) {
+                    const referenceSpace = this.scene.renderer.xr.getReferenceSpace();
+                    const hitTestResults = frame.getHitTestResults(hitTestSource);
+                    
+                    if (hitTestResults.length > 0) {
+                        const hit = hitTestResults[0];
+                        const pose = hit.getPose(referenceSpace);
+                        
+                        if (pose) {
+                            // Mostrar reticle en la superficie detectada
+                            this.data.target.setAttribute('visible', true);
+                            this.data.target.setAttribute('position', {
+                                x: pose.transform.position.x,
+                                y: pose.transform.position.y,
+                                z: pose.transform.position.z
+                            });
+                            
+                            // Guardar posición para colocar objetos
+                            window.lastHitPosition = pose.transform.position;
+                            window.lastHitRotation = pose.transform.orientation;
+                        }
+                    } else {
+                        this.data.target.setAttribute('visible', false);
+                    }
+                }
+            }
+        });
+        
+        // Verificar soporte WebXR
+        async function checkWebXRSupport() {
+            const status = document.getElementById('status');
+            const controls = document.getElementById('controls');
+            
+            if (!navigator.xr) {
+                status.innerHTML = '❌ WebXR no soportado<br>Necesitas Chrome Android con ARCore';
+                status.className = 'status webxr-unsupported';
+                return;
+            }
+            
+            try {
+                const supported = await navigator.xr.isSessionSupported('immersive-ar');
+                if (supported) {
+                    status.innerHTML = '✅ WebXR AR soportado!<br>Toca "Iniciar AR" para comenzar';
+                    status.className = 'status webxr-support';
+                    controls.style.display = 'block';
+                } else {
+                    status.innerHTML = '❌ AR no soportado<br>Necesitas dispositivo con ARCore';
+                    status.className = 'status webxr-unsupported';
+                }
+            } catch (error) {
+                status.innerHTML = '❌ Error verificando WebXR<br>' + error.message;
+                status.className = 'status webxr-unsupported';
+            }
+        }
+        
+        // Iniciar sesión AR
+        async function enterAR() {
+            const sceneEl = document.getElementById('scene');
+            
+            try {
+                await sceneEl.enterVR();
+                document.getElementById('status').style.display = 'none';
+                document.getElementById('ar-button').textContent = '👁️ AR Activo';
+                console.log('Sesión AR iniciada');
+            } catch (error) {
+                console.error('Error al iniciar AR:', error);
+                alert('Error al iniciar AR: ' + error.message);
+            }
+        }
+        
+        // Colocar objeto en superficie detectada
         function placeObject() {
-            const container = document.querySelector('#world-objects');
-            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
-            const shapes = ['box', 'sphere', 'cylinder'];
+            if (!window.lastHitPosition) {
+                alert('Primero apunta a una superficie para detectarla');
+                return;
+            }
+            
+            const container = document.getElementById('ar-objects');
+            const shapes = ['cube', 'sphere'];
+            const colors = ['#4CC3D9', '#EF2D5E', '#FFC65D', '#7BC8A4', '#A55EEA'];
             
             const shape = shapes[Math.floor(Math.random() * shapes.length)];
             const color = colors[Math.floor(Math.random() * colors.length)];
             
             const entity = document.createElement('a-entity');
-            entity.setAttribute('geometry', `primitive: ${shape}; radius: 0.3`);
-            entity.setAttribute('material', `color: ${color}`);
+            entity.setAttribute('id', `ar-obj-${objectCount++}`);
+            entity.setAttribute('mixin', shape);
+            entity.setAttribute('material', 'color', color);
             
-            // Posición fija en coordenadas del mundo
+            // Posición exacta de la superficie detectada
             entity.setAttribute('position', {
-                x: (Math.random() - 0.5) * 4,
-                y: Math.random() * 2,
-                z: -Math.random() * 3 - 1
+                x: window.lastHitPosition.x + (Math.random() - 0.5) * 0.2,
+                y: window.lastHitPosition.y + 0.15,
+                z: window.lastHitPosition.z + (Math.random() - 0.5) * 0.2
             });
             
             entity.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 3000');
             container.appendChild(entity);
-            count++;
+            
+            console.log('Objeto colocado en superficie real:', entity.getAttribute('position'));
         }
         
-        function clearAll() {
-            const container = document.querySelector('#world-objects');
-            const children = [...container.children];
-            children.forEach(child => {
-                if (!child.hasAttribute('position') || 
-                    !['0 0 -2', '1 0.5 -3', '0 1 -2'].includes(child.getAttribute('position'))) {
-                    container.removeChild(child);
-                }
-            });
+        // Limpiar objetos
+        function clearObjects() {
+            const container = document.getElementById('ar-objects');
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+            objectCount = 0;
         }
+        
+        // Inicialización
+        window.addEventListener('load', function() {
+            scene = document.getElementById('scene');
+            reticle = document.getElementById('reticle');
+            camera = document.getElementById('camera');
+            
+            checkWebXRSupport();
+            
+            console.log('WebXR AR cargado - Detecta superficies automáticamente');
+        });
+        
+        // Manejo de errores
+        window.addEventListener('error', function(e) {
+            console.error('Error:', e.error);
+        });
     </script>
 </body>
 </html>
