@@ -3,22 +3,56 @@
   <head>
     <meta charset="utf-8">
     <title>Hello World AR • A-Frame</title>
-    <meta name="description" content="Realidad Aumentada con A-Frame - Escanea superficies para colocar objetos">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Realidad Aumentada con A-Frame">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     
     <!-- A-Frame Core -->
-    <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     
-    <!-- AR.js para Realidad Aumentada -->
-    <script src="https://cdn.jsdelivr.net/npm/ar.js@2.2.0/aframe/build/aframe-ar.min.js"></script>
-    
-    <!-- WebXR Polyfill para mayor compatibilidad -->
-    <script src="https://cdn.jsdelivr.net/npm/webxr-polyfill@latest/build/webxr-polyfill.min.js"></script>
+    <!-- AR.js versión estable -->
+    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.min.js"></script>
     
     <style>
       body {
         margin: 0;
         font-family: Arial, sans-serif;
+        overflow: hidden;
+      }
+      
+      #loadingScreen {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        font-size: 18px;
+        text-align: center;
+      }
+      
+      #loadingScreen.hidden {
+        display: none;
+      }
+      
+      .loading-spinner {
+        border: 4px solid #333;
+        border-top: 4px solid #4CC3D9;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
       }
       
       #instructions {
@@ -26,215 +60,252 @@
         top: 10px;
         left: 10px;
         right: 10px;
-        background: rgba(0,0,0,0.7);
+        background: rgba(0,0,0,0.8);
         color: white;
         padding: 15px;
         border-radius: 10px;
         z-index: 999;
-        font-size: 14px;
+        font-size: 16px;
         text-align: center;
       }
       
-      #instructions.hidden {
-        display: none;
+      #tapButton {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #4CC3D9;
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 50px;
+        font-size: 18px;
+        z-index: 999;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       }
       
-      .tap-instruction {
-        background: rgba(76, 195, 217, 0.9);
-        padding: 10px;
-        margin: 5px 0;
-        border-radius: 5px;
+      #tapButton:active {
+        transform: translateX(-50%) scale(0.95);
       }
     </style>
   </head>
   <body>
-    <!-- Instrucciones para el usuario -->
-    <div id="instructions">
-      <div class="tap-instruction">
-        📱 <strong>Instrucciones AR:</strong><br>
-        1. Permite acceso a la cámara<br>
-        2. Apunta a una superficie plana<br>
-        3. <strong>Toca la pantalla</strong> para colocar objetos<br>
-        4. Muévete para ver desde diferentes ángulos
-      </div>
-      <button onclick="hideInstructions()" style="margin-top: 10px; padding: 8px 16px; background: #4CC3D9; color: white; border: none; border-radius: 5px;">
-        ¡Entendido!
-      </button>
+    
+    <!-- Pantalla de carga -->
+    <div id="loadingScreen">
+      <div class="loading-spinner"></div>
+      <p>🎥 Iniciando cámara...</p>
+      <p>Por favor permite el acceso a la cámara</p>
+      <small>Si no funciona, recarga la página</small>
     </div>
+
+    <!-- Instrucciones -->
+    <div id="instructions">
+      📱 <strong>Apunta a una superficie plana y toca el botón para colocar objetos</strong>
+    </div>
+    
+    <!-- Botón para colocar objetos -->
+    <button id="tapButton" onclick="placeObjects()">
+      📍 Colocar Objetos
+    </button>
 
     <!-- Escena AR -->
     <a-scene
+      id="arScene"
       vr-mode-ui="enabled: false"
       arjs="sourceType: webcam; 
-            debugUIEnabled: false; 
-            detectionMode: mono_and_matrix; 
-            matrixCodeType: 3x3;
-            trackingMethod: best;"
-      renderer="logarithmicDepthBuffer: true; colorManagement: true;"
-      ar-hit-test="target: #objects"
-      shadow="type: pcfsoft"
-      background="transparent">
+            sourceWidth: 1280; 
+            sourceHeight: 960; 
+            displayWidth: 1280; 
+            displayHeight: 960;
+            debugUIEnabled: false;"
+      renderer="logarithmicDepthBuffer: true; 
+                colorManagement: true; 
+                sortObjects: true; 
+                antialias: true;"
+      background="transparent"
+      embedded
+      style="position: fixed; top: 0; left: 0; width: 100%; height: 100%;">
+      
+      <!-- Marcador invisible para AR -->
+      <a-marker
+        id="marker"
+        type="pattern"
+        preset="hiro"
+        raycaster="objects: .clickable"
+        emitevents="true"
+        cursor="fuse: false; rayOrigin: mouse;">
+        
+        <!-- Contenedor de objetos -->
+        <a-entity id="objects" visible="false" position="0 0 0">
+          
+          <!-- Cubo azul -->
+          <a-box 
+            position="-0.5 0.2 0" 
+            rotation="0 45 0" 
+            scale="0.3 0.3 0.3"
+            color="#4CC3D9" 
+            shadow="cast: true; receive: true"
+            animation="property: rotation; 
+                       to: 0 405 0; 
+                       loop: true; 
+                       dur: 4000; 
+                       easing: linear">
+          </a-box>
+          
+          <!-- Esfera rosa -->
+          <a-sphere 
+            position="0 0.4 -0.5" 
+            radius="0.2" 
+            color="#EF2D5E" 
+            shadow="cast: true; receive: true"
+            animation="property: position; 
+                       to: 0 0.8 -0.5; 
+                       direction: alternate; 
+                       loop: true; 
+                       dur: 2000; 
+                       easing: easeInOutSine">
+          </a-sphere>
+          
+          <!-- Cilindro amarillo -->
+          <a-cylinder 
+            position="0.5 0.15 0" 
+            radius="0.15" 
+            height="0.4" 
+            color="#FFC65D" 
+            shadow="cast: true; receive: true"
+            animation="property: scale; 
+                       to: 1 1.5 1; 
+                       direction: alternate; 
+                       loop: true; 
+                       dur: 3000; 
+                       easing: easeInOutElastic">
+          </a-cylinder>
+          
+          <!-- Plano verde base -->
+          <a-plane 
+            position="0 0 0" 
+            rotation="-90 0 0" 
+            width="2" 
+            height="2" 
+            color="#7BC8A4" 
+            opacity="0.7"
+            shadow="receive: true">
+          </a-plane>
+          
+          <!-- Texto flotante -->
+          <a-text 
+            value="¡Hola AR!" 
+            position="0 1 0" 
+            align="center" 
+            color="#333333"
+            scale="2 2 2"
+            look-at="#arCamera"
+            shader="msdf"
+            font="roboto">
+          </a-text>
+          
+        </a-entity>
+        
+      </a-marker>
       
       <!-- Cámara AR -->
-      <a-camera 
-        id="camera"
-        gps-camera="gpsMinDistance: 5"
+      <a-entity 
+        id="arCamera"
+        camera 
         look-controls="enabled: false"
         wasd-controls="enabled: false"
-        cursor="fuse: false; rayOrigin: mouse">
-      </a-camera>
-      
-      <!-- Contenedor de objetos que se colocan al hacer tap -->
-      <a-entity id="objects" visible="false">
-        
-        <!-- Cubo azul -->
-        <a-box 
-          id="box"
-          position="-0.3 0.1 0" 
-          rotation="0 45 0" 
-          scale="0.2 0.2 0.2"
-          color="#4CC3D9" 
-          shadow="cast: true; receive: true"
-          animation="property: rotation; 
-                     to: 0 405 0; 
-                     loop: true; 
-                     dur: 4000; 
-                     easing: linear">
-        </a-box>
-        
-        <!-- Esfera rosa -->
-        <a-sphere 
-          id="sphere"
-          position="0 0.15 -0.2" 
-          radius="0.1" 
-          color="#EF2D5E" 
-          shadow="cast: true; receive: true"
-          animation="property: position; 
-                     to: 0 0.25 -0.2; 
-                     direction: alternate; 
-                     loop: true; 
-                     dur: 2000; 
-                     easing: easeInOutSine">
-        </a-sphere>
-        
-        <!-- Cilindro amarillo -->
-        <a-cylinder 
-          id="cylinder"
-          position="0.3 0.05 0" 
-          radius="0.08" 
-          height="0.2" 
-          scale="1 1 1"
-          color="#FFC65D" 
-          shadow="cast: true; receive: true"
-          animation="property: scale; 
-                     to: 1 1.5 1; 
-                     direction: alternate; 
-                     loop: true; 
-                     dur: 3000; 
-                     easing: easeInOutElastic">
-        </a-cylinder>
-        
-        <!-- Plano verde como base -->
-        <a-plane 
-          position="0 0 0" 
-          rotation="-90 0 0" 
-          width="0.8" 
-          height="0.8" 
-          color="#7BC8A4" 
-          opacity="0.8"
-          shadow="receive: true">
-        </a-plane>
-        
-        <!-- Texto de bienvenida -->
-        <a-text 
-          value="¡Hola Mundo AR!" 
-          position="0 0.3 -0.1" 
-          align="center" 
-          color="#333333"
-          scale="0.5 0.5 0.5"
-          shader="msdf"
-          font="roboto">
-        </a-text>
+        cursor="rayOrigin: mouse">
       </a-entity>
       
-      <!-- Iluminación -->
-      <a-light 
-        type="ambient" 
-        color="#404040" 
-        intensity="0.5">
-      </a-light>
-      
-      <a-light 
-        type="directional" 
-        position="1 2 1" 
-        color="#ffffff" 
-        intensity="0.8"
-        shadow="cast: true">
-      </a-light>
-      
-      <!-- Cursor para interacción -->
-      <a-entity 
-        id="cursor"
-        cursor="rayOrigin: mouse"
-        raycaster="objects: #objects">
-      </a-entity>
+      <!-- Luces -->
+      <a-light type="ambient" color="#404040" intensity="0.4"></a-light>
+      <a-light type="directional" position="0 1 1" shadow="cast: true"></a-light>
       
     </a-scene>
 
     <script>
-      let objectsPlaced = false;
+      let arReady = false;
+      let objectsVisible = false;
       
-      // Función para ocultar instrucciones
-      function hideInstructions() {
-        document.getElementById('instructions').classList.add('hidden');
+      // Función para colocar objetos
+      function placeObjects() {
+        const objects = document.querySelector('#objects');
+        if (objects && arReady) {
+          objects.setAttribute('visible', !objectsVisible);
+          objectsVisible = !objectsVisible;
+          
+          const button = document.getElementById('tapButton');
+          button.textContent = objectsVisible ? '❌ Ocultar Objetos' : '📍 Colocar Objetos';
+          
+          if (objectsVisible) {
+            document.getElementById('instructions').innerHTML = 
+              '🎉 <strong>¡Objetos colocados!</strong> Muévete para verlos desde diferentes ángulos';
+          } else {
+            document.getElementById('instructions').innerHTML = 
+              '📱 <strong>Apunta a una superficie plana y toca el botón para colocar objetos</strong>';
+          }
+        }
       }
       
-      // Detectar cuando se puede colocar objetos (hit test)
-      document.querySelector('a-scene').addEventListener('ar-hit-test-start', function (e) {
-        console.log('AR Hit Test iniciado');
-      });
-      
-      // Colocar objetos cuando se hace tap en una superficie
-      document.querySelector('a-scene').addEventListener('ar-hit-test-select', function (e) {
-        const objects = document.querySelector('#objects');
-        
-        if (!objectsPlaced) {
-          // Colocar objetos en la posición detectada
-          objects.setAttribute('visible', true);
-          objects.setAttribute('position', e.detail.position);
-          objectsPlaced = true;
-          
-          // Ocultar instrucciones
-          setTimeout(() => {
-            hideInstructions();
-          }, 1000);
-          
-          console.log('Objetos colocados en:', e.detail.position);
-        }
-      });
-      
-      // Fallback: colocar objetos con tap manual si AR hit-test no funciona
-      document.addEventListener('touchstart', function(e) {
-        if (!objectsPlaced) {
-          const objects = document.querySelector('#objects');
-          objects.setAttribute('visible', true);
-          objects.setAttribute('position', '0 0 -1');
-          objectsPlaced = true;
-          hideInstructions();
-          console.log('Objetos colocados manualmente');
-        }
-      });
-      
-      // Manejar errores de AR
-      document.querySelector('a-scene').addEventListener('ar-error', function (e) {
-        console.error('Error de AR:', e.detail);
-        alert('Error al iniciar AR. Asegúrate de permitir acceso a la cámara.');
-      });
-      
-      // Debug: mostrar cuando AR está listo
+      // Detectar cuando AR está listo
       document.querySelector('a-scene').addEventListener('loaded', function () {
-        console.log('Escena AR cargada correctamente');
+        console.log('A-Frame cargado');
+        setTimeout(() => {
+          arReady = true;
+          document.getElementById('loadingScreen').classList.add('hidden');
+          console.log('AR listo para usar');
+        }, 3000); // Dar tiempo a que se inicialice la cámara
       });
+      
+      // Detectar errores
+      window.addEventListener('error', function(e) {
+        console.error('Error:', e.error);
+        document.getElementById('loadingScreen').innerHTML = `
+          <div style="color: #ff6b6b;">
+            <h3>❌ Error de cámara</h3>
+            <p>No se puede acceder a la cámara</p>
+            <p><strong>Soluciones:</strong></p>
+            <ul style="text-align: left; display: inline-block;">
+              <li>Permite acceso a la cámara</li>
+              <li>Usa HTTPS (GitHub Pages ✅)</li>
+              <li>Prueba en Chrome/Safari móvil</li>
+              <li>Recarga la página</li>
+            </ul>
+            <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #4CC3D9; color: white; border: none; border-radius: 5px;">
+              🔄 Recargar Página
+            </button>
+          </div>
+        `;
+      });
+      
+      // Detectar si la cámara se inicia
+      navigator.mediaDevices?.getUserMedia({ video: true })
+        .then(stream => {
+          console.log('✅ Cámara accesible');
+          stream.getTracks().forEach(track => track.stop()); // Parar el test
+        })
+        .catch(err => {
+          console.error('❌ Error de cámara:', err);
+          document.getElementById('loadingScreen').innerHTML = `
+            <div style="color: #ff6b6b;">
+              <h3>❌ No se puede acceder a la cámara</h3>
+              <p><strong>Error:</strong> ${err.message}</p>
+              <p><strong>Soluciones:</strong></p>
+              <ul style="text-align: left; display: inline-block;">
+                <li>Permite acceso a la cámara en el navegador</li>
+                <li>Asegúrate de usar HTTPS</li>
+                <li>Prueba en Chrome o Safari móvil</li>
+                <li>Verifica que no haya otra app usando la cámara</li>
+              </ul>
+              <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #4CC3D9; color: white; border: none; border-radius: 5px;">
+                🔄 Reintentar
+              </button>
+            </div>
+          `;
+        });
+      
     </script>
   </body>
 </html>
