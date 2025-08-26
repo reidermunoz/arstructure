@@ -2,309 +2,253 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Hello World AR • A-Frame</title>
-    <meta name="description" content="Realidad Aumentada con A-Frame">
+    <title>AR Debug - Test de Cámara</title>
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    
-    <!-- A-Frame Core -->
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    
-    <!-- AR.js versión estable -->
-    <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.min.js"></script>
     
     <style>
       body {
         margin: 0;
+        padding: 20px;
         font-family: Arial, sans-serif;
-        overflow: hidden;
-      }
-      
-      #loadingScreen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
         background: #000;
         color: white;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        font-size: 18px;
-        text-align: center;
       }
       
-      #loadingScreen.hidden {
-        display: none;
-      }
-      
-      .loading-spinner {
-        border: 4px solid #333;
-        border-top: 4px solid #4CC3D9;
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        animation: spin 1s linear infinite;
-        margin: 20px;
-      }
-      
-      @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-      }
-      
-      #instructions {
+      #debug {
         position: fixed;
         top: 10px;
         left: 10px;
         right: 10px;
-        background: rgba(0,0,0,0.8);
-        color: white;
+        background: rgba(0,0,0,0.9);
+        color: #00ff00;
         padding: 15px;
         border-radius: 10px;
-        z-index: 999;
-        font-size: 16px;
-        text-align: center;
+        z-index: 9999;
+        font-family: monospace;
+        font-size: 12px;
+        max-height: 300px;
+        overflow-y: auto;
       }
       
-      #tapButton {
-        position: fixed;
-        bottom: 30px;
-        left: 50%;
-        transform: translateX(-50%);
+      #video {
+        width: 100%;
+        height: 60vh;
+        background: #333;
+        border-radius: 10px;
+        margin: 20px 0;
+      }
+      
+      .step {
+        background: #333;
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 5px;
+        border-left: 4px solid #4CC3D9;
+      }
+      
+      .success {
+        border-left-color: #00ff00;
+        background: #1a4a1a;
+      }
+      
+      .error {
+        border-left-color: #ff0000;
+        background: #4a1a1a;
+      }
+      
+      button {
         background: #4CC3D9;
         color: white;
         border: none;
-        padding: 15px 30px;
-        border-radius: 50px;
-        font-size: 18px;
-        z-index: 999;
+        padding: 12px 24px;
+        border-radius: 5px;
+        font-size: 16px;
+        margin: 10px 5px;
         cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       }
       
-      #tapButton:active {
-        transform: translateX(-50%) scale(0.95);
+      button:hover {
+        background: #369fb8;
       }
     </style>
   </head>
   <body>
     
-    <!-- Pantalla de carga -->
-    <div id="loadingScreen">
-      <div class="loading-spinner"></div>
-      <p>🎥 Iniciando cámara...</p>
-      <p>Por favor permite el acceso a la cámara</p>
-      <small>Si no funciona, recarga la página</small>
-    </div>
-
-    <!-- Instrucciones -->
-    <div id="instructions">
-      📱 <strong>Apunta a una superficie plana y toca el botón para colocar objetos</strong>
+    <div id="debug">
+      <h3>🔍 DIAGNÓSTICO DE CÁMARA - PASO A PASO</h3>
+      <div id="log">Iniciando diagnóstico...</div>
     </div>
     
-    <!-- Botón para colocar objetos -->
-    <button id="tapButton" onclick="placeObjects()">
-      📍 Colocar Objetos
-    </button>
-
-    <!-- Escena AR -->
-    <a-scene
-      id="arScene"
-      vr-mode-ui="enabled: false"
-      arjs="sourceType: webcam; 
-            sourceWidth: 1280; 
-            sourceHeight: 960; 
-            displayWidth: 1280; 
-            displayHeight: 960;
-            debugUIEnabled: false;"
-      renderer="logarithmicDepthBuffer: true; 
-                colorManagement: true; 
-                sortObjects: true; 
-                antialias: true;"
-      background="transparent"
-      embedded
-      style="position: fixed; top: 0; left: 0; width: 100%; height: 100%;">
+    <div style="margin-top: 320px; text-align: center;">
+      <h2>📱 Test de Cámara Manual</h2>
       
-      <!-- Marcador invisible para AR -->
-      <a-marker
-        id="marker"
-        type="pattern"
-        preset="hiro"
-        raycaster="objects: .clickable"
-        emitevents="true"
-        cursor="fuse: false; rayOrigin: mouse;">
-        
-        <!-- Contenedor de objetos -->
-        <a-entity id="objects" visible="false" position="0 0 0">
-          
-          <!-- Cubo azul -->
-          <a-box 
-            position="-0.5 0.2 0" 
-            rotation="0 45 0" 
-            scale="0.3 0.3 0.3"
-            color="#4CC3D9" 
-            shadow="cast: true; receive: true"
-            animation="property: rotation; 
-                       to: 0 405 0; 
-                       loop: true; 
-                       dur: 4000; 
-                       easing: linear">
-          </a-box>
-          
-          <!-- Esfera rosa -->
-          <a-sphere 
-            position="0 0.4 -0.5" 
-            radius="0.2" 
-            color="#EF2D5E" 
-            shadow="cast: true; receive: true"
-            animation="property: position; 
-                       to: 0 0.8 -0.5; 
-                       direction: alternate; 
-                       loop: true; 
-                       dur: 2000; 
-                       easing: easeInOutSine">
-          </a-sphere>
-          
-          <!-- Cilindro amarillo -->
-          <a-cylinder 
-            position="0.5 0.15 0" 
-            radius="0.15" 
-            height="0.4" 
-            color="#FFC65D" 
-            shadow="cast: true; receive: true"
-            animation="property: scale; 
-                       to: 1 1.5 1; 
-                       direction: alternate; 
-                       loop: true; 
-                       dur: 3000; 
-                       easing: easeInOutElastic">
-          </a-cylinder>
-          
-          <!-- Plano verde base -->
-          <a-plane 
-            position="0 0 0" 
-            rotation="-90 0 0" 
-            width="2" 
-            height="2" 
-            color="#7BC8A4" 
-            opacity="0.7"
-            shadow="receive: true">
-          </a-plane>
-          
-          <!-- Texto flotante -->
-          <a-text 
-            value="¡Hola AR!" 
-            position="0 1 0" 
-            align="center" 
-            color="#333333"
-            scale="2 2 2"
-            look-at="#arCamera"
-            shader="msdf"
-            font="roboto">
-          </a-text>
-          
-        </a-entity>
-        
-      </a-marker>
+      <video id="video" playsinline autoplay muted></video>
       
-      <!-- Cámara AR -->
-      <a-entity 
-        id="arCamera"
-        camera 
-        look-controls="enabled: false"
-        wasd-controls="enabled: false"
-        cursor="rayOrigin: mouse">
-      </a-entity>
+      <div>
+        <button onclick="testCamera()">🎥 Test Cámara Básica</button>
+        <button onclick="testAFrame()">🅰️ Test A-Frame</button>
+        <button onclick="testAR()">🔮 Test AR.js</button>
+        <button onclick="clearLog()">🧹 Limpiar Log</button>
+      </div>
       
-      <!-- Luces -->
-      <a-light type="ambient" color="#404040" intensity="0.4"></a-light>
-      <a-light type="directional" position="0 1 1" shadow="cast: true"></a-light>
-      
-    </a-scene>
+      <div style="margin-top: 20px;">
+        <p><strong>Instrucciones:</strong></p>
+        <p>1. Presiona "Test Cámara Básica" primero</p>
+        <p>2. Si funciona, prueba "Test A-Frame"</p>
+        <p>3. Finalmente "Test AR.js"</p>
+      </div>
+    </div>
 
     <script>
-      let arReady = false;
-      let objectsVisible = false;
+      const log = document.getElementById('log');
+      const video = document.getElementById('video');
+      let step = 1;
       
-      // Función para colocar objetos
-      function placeObjects() {
-        const objects = document.querySelector('#objects');
-        if (objects && arReady) {
-          objects.setAttribute('visible', !objectsVisible);
-          objectsVisible = !objectsVisible;
+      function addLog(message, type = 'info') {
+        const timestamp = new Date().toLocaleTimeString();
+        const className = type === 'error' ? 'error' : type === 'success' ? 'success' : '';
+        log.innerHTML += `<div class="step ${className}">
+          [${timestamp}] Paso ${step++}: ${message}
+        </div>`;
+        log.scrollTop = log.scrollHeight;
+        console.log(message);
+      }
+      
+      function clearLog() {
+        log.innerHTML = '<div>Log limpiado...</div>';
+        step = 1;
+      }
+      
+      // Test 1: Cámara básica HTML5
+      async function testCamera() {
+        addLog('🎥 Iniciando test de cámara básica...');
+        
+        try {
+          // Verificar soporte
+          if (!navigator.mediaDevices) {
+            addLog('❌ navigator.mediaDevices no disponible', 'error');
+            return;
+          }
           
-          const button = document.getElementById('tapButton');
-          button.textContent = objectsVisible ? '❌ Ocultar Objetos' : '📍 Colocar Objetos';
+          addLog('✅ navigator.mediaDevices disponible', 'success');
           
-          if (objectsVisible) {
-            document.getElementById('instructions').innerHTML = 
-              '🎉 <strong>¡Objetos colocados!</strong> Muévete para verlos desde diferentes ángulos';
-          } else {
-            document.getElementById('instructions').innerHTML = 
-              '📱 <strong>Apunta a una superficie plana y toca el botón para colocar objetos</strong>';
+          // Solicitar permisos
+          addLog('📋 Solicitando permisos de cámara...');
+          
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+              facingMode: 'environment', // Cámara trasera
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            },
+            audio: false
+          });
+          
+          addLog('✅ Permisos concedidos - Stream obtenido', 'success');
+          
+          // Mostrar video
+          video.srcObject = stream;
+          addLog('✅ Video conectado al elemento HTML', 'success');
+          
+          video.onloadedmetadata = () => {
+            addLog('✅ Video cargado - ¡Cámara funcionando!', 'success');
+          };
+          
+        } catch (error) {
+          addLog(`❌ Error de cámara: ${error.name} - ${error.message}`, 'error');
+          
+          // Diagnósticos específicos
+          if (error.name === 'NotAllowedError') {
+            addLog('💡 SOLUCIÓN: Permite acceso a la cámara en el navegador', 'error');
+          } else if (error.name === 'NotFoundError') {
+            addLog('💡 SOLUCIÓN: No se encontró cámara - ¿estás en móvil?', 'error');
+          } else if (error.name === 'NotSupportedError') {
+            addLog('💡 SOLUCIÓN: Necesitas HTTPS - ¿usas GitHub Pages?', 'error');
           }
         }
       }
       
-      // Detectar cuando AR está listo
-      document.querySelector('a-scene').addEventListener('loaded', function () {
-        console.log('A-Frame cargado');
-        setTimeout(() => {
-          arReady = true;
-          document.getElementById('loadingScreen').classList.add('hidden');
-          console.log('AR listo para usar');
-        }, 3000); // Dar tiempo a que se inicialice la cámara
-      });
-      
-      // Detectar errores
-      window.addEventListener('error', function(e) {
-        console.error('Error:', e.error);
-        document.getElementById('loadingScreen').innerHTML = `
-          <div style="color: #ff6b6b;">
-            <h3>❌ Error de cámara</h3>
-            <p>No se puede acceder a la cámara</p>
-            <p><strong>Soluciones:</strong></p>
-            <ul style="text-align: left; display: inline-block;">
-              <li>Permite acceso a la cámara</li>
-              <li>Usa HTTPS (GitHub Pages ✅)</li>
-              <li>Prueba en Chrome/Safari móvil</li>
-              <li>Recarga la página</li>
-            </ul>
-            <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #4CC3D9; color: white; border: none; border-radius: 5px;">
-              🔄 Recargar Página
-            </button>
-          </div>
-        `;
-      });
-      
-      // Detectar si la cámara se inicia
-      navigator.mediaDevices?.getUserMedia({ video: true })
-        .then(stream => {
-          console.log('✅ Cámara accesible');
-          stream.getTracks().forEach(track => track.stop()); // Parar el test
-        })
-        .catch(err => {
-          console.error('❌ Error de cámara:', err);
-          document.getElementById('loadingScreen').innerHTML = `
-            <div style="color: #ff6b6b;">
-              <h3>❌ No se puede acceder a la cámara</h3>
-              <p><strong>Error:</strong> ${err.message}</p>
-              <p><strong>Soluciones:</strong></p>
-              <ul style="text-align: left; display: inline-block;">
-                <li>Permite acceso a la cámara en el navegador</li>
-                <li>Asegúrate de usar HTTPS</li>
-                <li>Prueba en Chrome o Safari móvil</li>
-                <li>Verifica que no haya otra app usando la cámara</li>
-              </ul>
-              <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #4CC3D9; color: white; border: none; border-radius: 5px;">
-                🔄 Reintentar
-              </button>
-            </div>
+      // Test 2: A-Frame básico
+      function testAFrame() {
+        addLog('🅰️ Cargando A-Frame...');
+        
+        const script = document.createElement('script');
+        script.src = 'https://aframe.io/releases/1.4.0/aframe.min.js';
+        
+        script.onload = () => {
+          addLog('✅ A-Frame cargado correctamente', 'success');
+          
+          // Crear escena básica
+          const scene = document.createElement('a-scene');
+          scene.setAttribute('embedded', '');
+          scene.setAttribute('style', 'height: 200px; width: 100%;');
+          scene.innerHTML = `
+            <a-box position="0 1 -3" color="#4CC3D9"></a-box>
+            <a-sphere position="2 1 -5" color="#EF2D5E"></a-sphere>
+            <a-sky color="#ECECEC"></a-sky>
           `;
-        });
+          
+          document.body.appendChild(scene);
+          addLog('✅ Escena A-Frame creada', 'success');
+        };
+        
+        script.onerror = () => {
+          addLog('❌ Error cargando A-Frame', 'error');
+        };
+        
+        document.head.appendChild(script);
+      }
+      
+      // Test 3: AR.js
+      function testAR() {
+        addLog('🔮 Cargando AR.js...');
+        
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.5/aframe/build/aframe-ar.min.js';
+        
+        script.onload = () => {
+          addLog('✅ AR.js cargado correctamente', 'success');
+          
+          // Crear escena AR básica
+          const arScene = document.createElement('a-scene');
+          arScene.setAttribute('arjs', 'sourceType: webcam; debugUIEnabled: false;');
+          arScene.setAttribute('vr-mode-ui', 'enabled: false');
+          arScene.setAttribute('embedded', '');
+          arScene.setAttribute('style', 'height: 300px; width: 100%;');
+          
+          arScene.innerHTML = `
+            <a-camera camera look-controls wasd-controls></a-camera>
+          `;
+          
+          document.body.appendChild(arScene);
+          addLog('✅ Escena AR creada - comprueba si aparece video', 'success');
+          
+          // Listener para eventos AR
+          arScene.addEventListener('loaded', () => {
+            addLog('✅ AR.js inicializado completamente', 'success');
+          });
+          
+        };
+        
+        script.onerror = () => {
+          addLog('❌ Error cargando AR.js', 'error');
+        };
+        
+        document.head.appendChild(script);
+      }
+      
+      // Información del sistema
+      addLog(`🌍 Navegador: ${navigator.userAgent}`);
+      addLog(`🔒 Protocolo: ${window.location.protocol}`);
+      addLog(`📱 Es móvil: ${/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)}`);
+      addLog(`🎥 MediaDevices: ${!!navigator.mediaDevices}`);
+      
+      // Verificación inicial
+      if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+        addLog('⚠️ ADVERTENCIA: No usas HTTPS - la cámara puede no funcionar', 'error');
+      } else {
+        addLog('✅ HTTPS detectado - protocolo correcto', 'success');
+      }
       
     </script>
   </body>
