@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AR Detección de Superficies</title>
+    <title>AR Simple - Objetos Fijos</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
@@ -14,9 +14,8 @@
             padding: 15px;
             border-radius: 5px;
             z-index: 100;
-            font-size: 11px;
+            font-size: 12px;
             max-width: 280px;
-            line-height: 1.4;
         }
         .controls {
             position: fixed;
@@ -32,209 +31,99 @@
             background: #007bff;
             color: white;
             border: none;
-            padding: 8px 15px;
+            padding: 10px 15px;
             border-radius: 5px;
             margin: 0 5px;
-            font-size: 12px;
             cursor: pointer;
-        }
-        .status {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            z-index: 100;
-            text-align: center;
         }
     </style>
 </head>
 <body style="margin: 0; overflow: hidden;">
     
     <div class="info">
-        <strong>DETECCIÓN DE SUPERFICIES:</strong><br>
-        1. Mueve lentamente el celular<br>
-        2. Apunta a superficies planas (mesa, piso)<br>
-        3. Toca "Colocar" cuando detecte superficie<br>
-        4. Los objetos se anclan automáticamente
-    </div>
-    
-    <div class="status" id="status">
-        🔍 Analizando superficies...
+        <strong>AR BÁSICO:</strong><br>
+        • Los objetos aparecen a distancia fija<br>
+        • Se quedan en coordenadas del mundo<br>
+        • Toca "Colocar" para añadir más<br>
+        • No es detección real, pero funciona
     </div>
     
     <div class="controls">
-        <button onclick="placeObject()">📍 Colocar Objeto</button>
-        <button onclick="clearObjects()">🧹 Limpiar</button>
+        <button onclick="placeObject()">📍 Colocar</button>
+        <button onclick="clearAll()">🧹 Limpiar</button>
     </div>
 
     <a-scene 
         embedded 
-        arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;"
-        vr-mode-ui="enabled: false"
-        surface-detector
-        id="scene">
+        arjs="sourceType: webcam; debugUIEnabled: false;"
+        vr-mode-ui="enabled: false">
         
-        <!-- Contenedor para objetos anclados a superficies -->
-        <a-entity id="surface-objects">
-            <!-- Los objetos se anclan aquí cuando se detectan superficies -->
+        <!-- Objetos que aparecen en coordenadas fijas del mundo -->
+        <a-entity id="world-objects">
+            
+            <!-- Estos están en posiciones absolutas del mundo -->
+            <a-box 
+                position="0 0 -2" 
+                color="#4CC3D9" 
+                scale="0.5 0.5 0.5"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 4000">
+            </a-box>
+            
+            <a-sphere 
+                position="1 0.5 -3" 
+                radius="0.3" 
+                color="#EF2D5E">
+            </a-sphere>
+            
+            <a-text 
+                value="Objetos en el mundo" 
+                position="0 1 -2" 
+                color="white" 
+                align="center">
+            </a-text>
+            
         </a-entity>
         
-        <!-- Indicador visual de superficie detectada -->
-        <a-entity id="surface-indicator">
-            <a-ring 
-                position="0 -1 -2" 
-                radius-inner="0.8" 
-                radius-outer="1" 
-                color="#00ff00" 
-                opacity="0"
-                animation__pulse="property: scale; to: 1.2 1.2 1.2; direction: alternate; loop: true; dur: 800">
-            </a-ring>
-        </a-entity>
-        
-        <!-- Cámara AR -->
-        <a-camera 
-            id="camera"
-            look-controls-enabled="true"
-            wasd-controls-enabled="false"
-            cursor="rayOrigin: mouse">
-        </a-camera>
+        <a-camera></a-camera>
     </a-scene>
 
     <script>
-        let surfaceDetected = false;
-        let objectCount = 0;
-        let surfacePosition = {x: 0, y: -1, z: -2};
+        let count = 0;
         
-        // Componente para detectar superficies
-        AFRAME.registerComponent('surface-detector', {
-            init: function() {
-                this.tick = AFRAME.utils.throttleTick(this.tick, 100, this);
-                this.camera = document.querySelector('#camera');
-                this.indicator = document.querySelector('#surface-indicator');
-                this.status = document.getElementById('status');
-                this.lastDetection = 0;
-            },
-            
-            tick: function(time) {
-                // Simular detección de superficie basada en movimiento de cámara
-                const cameraPosition = this.camera.getAttribute('position');
-                const cameraRotation = this.camera.getAttribute('rotation');
-                
-                // Detectar si la cámara está apuntando hacia abajo (superficie horizontal)
-                const isPointingDown = cameraRotation.x > -45 && cameraRotation.x < 45;
-                const isStable = Math.abs(cameraRotation.x - this.lastRotationX || 0) < 2;
-                
-                if (isPointingDown && isStable && (time - this.lastDetection > 1000)) {
-                    this.detectSurface(cameraPosition, cameraRotation);
-                    this.lastDetection = time;
-                }
-                
-                this.lastRotationX = cameraRotation.x;
-            },
-            
-            detectSurface: function(camPos, camRot) {
-                // Calcular posición de superficie frente a la cámara
-                const distance = 2;
-                const radY = (camRot.y * Math.PI) / 180;
-                const radX = (camRot.x * Math.PI) / 180;
-                
-                surfacePosition = {
-                    x: camPos.x + Math.sin(radY) * distance,
-                    y: camPos.y - Math.sin(radX) * distance - 1,
-                    z: camPos.z - Math.cos(radY) * distance
-                };
-                
-                // Mostrar indicador de superficie
-                this.indicator.setAttribute('position', surfacePosition);
-                this.indicator.children[0].setAttribute('opacity', '0.6');
-                
-                if (!surfaceDetected) {
-                    surfaceDetected = true;
-                    this.status.innerHTML = '✅ Superficie detectada!<br>Toca "Colocar" para anclar objetos';
-                    this.status.style.background = 'rgba(0,150,0,0.8)';
-                    
-                    setTimeout(() => {
-                        this.status.style.display = 'none';
-                    }, 3000);
-                    
-                    console.log('Superficie detectada en:', surfacePosition);
-                }
-            }
-        });
-        
-        // Función para colocar objetos en la superficie detectada
         function placeObject() {
-            if (!surfaceDetected) {
-                alert('Primero detecta una superficie moviendo lentamente el celular');
-                return;
-            }
+            const container = document.querySelector('#world-objects');
+            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD'];
+            const shapes = ['box', 'sphere', 'cylinder'];
             
-            const container = document.querySelector('#surface-objects');
-            const shapes = ['box', 'sphere', 'cylinder', 'octahedron'];
-            const colors = ['#4CC3D9', '#EF2D5E', '#FFC65D', '#7BC8A4', '#A55EEA', '#FF6B9D'];
+            const shape = shapes[Math.floor(Math.random() * shapes.length)];
+            const color = colors[Math.floor(Math.random() * colors.length)];
             
-            const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
-            const randomColor = colors[Math.floor(Math.random() * colors.length)];
-            
-            // Crear objeto anclado a la superficie
             const entity = document.createElement('a-entity');
-            entity.setAttribute('id', `surface-obj-${objectCount++}`);
-            entity.setAttribute('geometry', {
-                primitive: randomShape,
-                radius: randomShape === 'sphere' ? 0.3 : undefined,
-                width: randomShape === 'box' ? 0.4 : undefined,
-                height: randomShape === 'box' ? 0.4 : undefined,
-                depth: randomShape === 'box' ? 0.4 : undefined
-            });
-            entity.setAttribute('material', {color: randomColor, opacity: 0.9});
+            entity.setAttribute('geometry', `primitive: ${shape}; radius: 0.3`);
+            entity.setAttribute('material', `color: ${color}`);
             
-            // Posición ANCLADA a la superficie detectada
+            // Posición fija en coordenadas del mundo
             entity.setAttribute('position', {
-                x: surfacePosition.x + (Math.random() - 0.5) * 2,
-                y: surfacePosition.y + 0.2,
-                z: surfacePosition.z + (Math.random() - 0.5) * 2
+                x: (Math.random() - 0.5) * 4,
+                y: Math.random() * 2,
+                z: -Math.random() * 3 - 1
             });
             
-            // Animación sutil
-            entity.setAttribute('animation', {
-                property: 'rotation',
-                to: '0 360 0',
-                loop: true,
-                dur: Math.random() * 3000 + 2000
-            });
-            
+            entity.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 3000');
             container.appendChild(entity);
-            console.log(`Objeto ${objectCount} anclado a superficie en:`, entity.getAttribute('position'));
+            count++;
         }
         
-        // Limpiar objetos
-        function clearObjects() {
-            const container = document.querySelector('#surface-objects');
-            while (container.firstChild) {
-                container.removeChild(container.firstChild);
-            }
-            objectCount = 0;
-            
-            // Resetear detección
-            surfaceDetected = false;
-            document.querySelector('#surface-indicator').children[0].setAttribute('opacity', '0');
-            document.getElementById('status').innerHTML = '🔍 Analizando superficies...';
-            document.getElementById('status').style.display = 'block';
-            document.getElementById('status').style.background = 'rgba(0,0,0,0.8)';
+        function clearAll() {
+            const container = document.querySelector('#world-objects');
+            const children = [...container.children];
+            children.forEach(child => {
+                if (!child.hasAttribute('position') || 
+                    !['0 0 -2', '1 0.5 -3', '0 1 -2'].includes(child.getAttribute('position'))) {
+                    container.removeChild(child);
+                }
+            });
         }
-        
-        // Inicialización
-        window.addEventListener('load', function() {
-            console.log('Sistema de detección de superficies iniciado');
-            
-            setTimeout(() => {
-                console.log('Mueve el celular lentamente para detectar superficies');
-            }, 2000);
-        });
     </script>
 </body>
 </html>
