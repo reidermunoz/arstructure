@@ -4,24 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AR - Colocar Cubos</title>
+    <!-- A-Frame -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aframe/1.4.0/aframe.min.js"></script>
+    <!-- AR.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ar.js/2.2.2/aframe-ar.min.js"></script>
     <style>
         body {
             margin: 0;
             font-family: Arial, sans-serif;
+            overflow: hidden;
         }
         
         .ui-overlay {
             position: fixed;
-            top: 20px;
-            left: 20px;
-            z-index: 1000;
-            background: rgba(0, 0, 0, 0.7);
+            top: 10px;
+            left: 10px;
+            z-index: 999;
+            background: rgba(0, 0, 0, 0.8);
             color: white;
-            padding: 15px;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            max-width: 200px;
         }
         
         .controls {
@@ -29,7 +33,7 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 1000;
+            z-index: 999;
             display: flex;
             gap: 10px;
         }
@@ -38,11 +42,11 @@
             background: #4CAF50;
             color: white;
             border: none;
-            padding: 15px 20px;
-            border-radius: 50px;
-            font-size: 16px;
+            padding: 12px 18px;
+            border-radius: 25px;
+            font-size: 14px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
         }
         
@@ -64,184 +68,225 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.9);
             color: white;
             padding: 20px;
             border-radius: 10px;
-            z-index: 2000;
+            z-index: 1000;
+            text-align: center;
+        }
+        
+        #arjsDebugUIContainer {
+            display: none !important;
         }
     </style>
 </head>
 <body>
     <div id="loading" class="loading">
-        <p>Iniciando cámara AR...</p>
-        <p>Apunta la cámara a una superficie plana</p>
+        <p>🎥 Iniciando cámara...</p>
+        <p>Permite el acceso a la cámara</p>
+        <p><small>Funciona mejor con luz natural</small></p>
     </div>
     
     <div class="ui-overlay">
-        <h3>🔮 AR Cubes</h3>
-        <p>📱 Toca la pantalla para colocar un cubo</p>
-        <p id="cubeCount">Cubos: 0</p>
+        <div>🔮 <strong>AR Cubos</strong></div>
+        <div>👆 Toca para agregar</div>
+        <div id="cubeCount">Cubos: 0</div>
+        <div id="status">Iniciando...</div>
     </div>
     
     <div class="controls">
-        <button class="btn" onclick="addCube()">➕ Agregar Cubo</button>
-        <button class="btn danger" onclick="clearCubes()">🗑️ Limpiar</button>
+        <button class="btn" onclick="placeCube()" id="addBtn">➕ Cubo</button>
+        <button class="btn danger" onclick="clearAll()" id="clearBtn">🗑️ Limpiar</button>
     </div>
 
-    <a-scene 
-        id="arScene"
-        embedded 
-        arjs="sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;"
+    <!-- Escena A-Frame con configuración mejorada para AR -->
+    <a-scene
+        id="scene"
+        embedded
+        arjs="sourceType: webcam; sourceWidth: 1280; sourceHeight: 960; displayWidth: 1280; displayHeight: 960; debugUIEnabled: false;"
         vr-mode-ui="enabled: false"
-        renderer="logarithmicDepthBuffer: true; colorManagement: true; sortObjects: true"
+        renderer="logarithmicDepthBuffer: true; colorManagement: true; antialias: true; alpha: true;"
         loading-screen="enabled: false"
         gesture-detector>
         
-        <!-- Configuración de la cámara AR -->
-        <a-camera 
-            id="camera"
-            gps-camera 
-            rotation-reader
-            look-controls="enabled: false"
-            arjs-look-controls="smoothingFactor: 0.1"
-            cursor="rayOrigin: mouse">
-        </a-camera>
+        <a-assets>
+            <a-mixin id="cube-mixin" 
+                     geometry="primitive: box"
+                     material="roughness: 0.3; metalness: 0.2"
+                     shadow="cast: true; receive: true">
+            </a-mixin>
+        </a-assets>
         
-        <!-- Marcador invisible para AR sin marcadores -->
-        <a-marker
-            id="markerless"
-            type="barcode"
-            value="0"
-            raycaster="objects: .clickable"
+        <!-- Cámara AR -->
+        <a-entity 
+            id="cameraRig" 
+            camera 
+            look-controls="enabled: false" 
+            wasd-controls="enabled: false"
+            arjs-look-controls="smoothingFactor: 0.1">
+        </a-entity>
+        
+        <!-- Marcador para colocar objetos -->
+        <a-marker 
+            id="hiro-marker"
+            type="pattern" 
+            preset="hiro"
+            raycaster="objects: .raycastable"
             emitevents="true"
-            cursor="rayOrigin: mouse; fuse: false">
+            cursor="fuse: false; rayOrigin: mouse">
             
-            <!-- Plano de referencia invisible -->
+            <!-- Plano de referencia -->
             <a-plane 
-                id="ground"
                 position="0 0 0" 
                 rotation="-90 0 0" 
-                width="10" 
-                height="10" 
-                color="transparent"
-                class="clickable"
-                material="transparent: true; opacity: 0">
+                width="4" 
+                height="4" 
+                color="#7BC8A4"
+                opacity="0.3"
+                material="transparent: true"
+                class="raycastable"
+                id="ground">
             </a-plane>
+            
+            <!-- Contenedor de cubos -->
+            <a-entity id="cubes"></a-entity>
+            
         </a-marker>
         
-        <!-- Contenedor para los cubos -->
-        <a-entity id="cubes-container"></a-entity>
-        
-        <!-- Luces -->
-        <a-light type="ambient" color="#404040" intensity="0.5"></a-light>
-        <a-light type="directional" position="0 1 0" color="#ffffff" intensity="0.5"></a-light>
+        <!-- Iluminación -->
+        <a-light type="ambient" color="#bbbbbb" intensity="0.6"></a-light>
+        <a-light type="directional" position="0 1 0" color="#ffffff" intensity="0.4"></a-light>
     </a-scene>
 
     <script>
-        let cubeCount = 0;
+        let cubeCounter = 0;
+        let scene, marker, cubesContainer;
         let isARReady = false;
         
-        // Colores para los cubos
-        const cubeColors = [
+        const colors = [
             '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', 
-            '#FECA57', '#FF9FF3', '#54A0FF', '#5F27CD'
+            '#FECA57', '#FF9FF3', '#54A0FF', '#5F27CD',
+            '#FD79A8', '#00B894', '#E17055', '#A29BFE'
         ];
         
-        // Inicialización
+        // Esperar a que se cargue la escena
         document.addEventListener('DOMContentLoaded', function() {
+            scene = document.querySelector('#scene');
+            marker = document.querySelector('#hiro-marker');
+            cubesContainer = document.querySelector('#cubes');
+            
+            // Ocultar loading después de un tiempo
             setTimeout(() => {
                 document.getElementById('loading').style.display = 'none';
+                updateStatus('Lista - Busca el marcador HIRO');
                 isARReady = true;
             }, 3000);
+            
+            // Eventos del marcador
+            marker.addEventListener('markerFound', function() {
+                updateStatus('✅ Marcador detectado!');
+                console.log('Marcador encontrado');
+            });
+            
+            marker.addEventListener('markerLost', function() {
+                updateStatus('❌ Busca el marcador HIRO');
+                console.log('Marcador perdido');
+            });
         });
         
-        // Función para generar posición aleatoria
-        function getRandomPosition() {
-            return {
-                x: (Math.random() - 0.5) * 4,
-                y: Math.random() * 2 + 0.5,
-                z: (Math.random() - 0.5) * 4
-            };
-        }
-        
-        // Función para agregar cubo
-        function addCube() {
-            if (!isARReady) return;
+        // Función para colocar cubo
+        function placeCube() {
+            if (!isARReady) {
+                showMessage('AR no está listo aún...');
+                return;
+            }
             
-            const scene = document.querySelector('#arScene');
-            const container = document.querySelector('#cubes-container');
-            const marker = document.querySelector('#markerless');
+            // Posición aleatoria en el marcador
+            const x = (Math.random() - 0.5) * 2;
+            const y = Math.random() * 1 + 0.25;
+            const z = (Math.random() - 0.5) * 2;
             
-            // Crear cubo
             const cube = document.createElement('a-box');
-            const position = getRandomPosition();
-            const color = cubeColors[cubeCount % cubeColors.length];
-            const scale = Math.random() * 0.3 + 0.2;
+            const color = colors[cubeCounter % colors.length];
+            const size = Math.random() * 0.3 + 0.15;
             
-            cube.setAttribute('position', `${position.x} ${position.y} ${position.z}`);
-            cube.setAttribute('rotation', `${Math.random() * 360} ${Math.random() * 360} ${Math.random() * 360}`);
-            cube.setAttribute('scale', `${scale} ${scale} ${scale}`);
+            cube.setAttribute('mixin', 'cube-mixin');
+            cube.setAttribute('position', `${x} ${y} ${z}`);
+            cube.setAttribute('rotation', `${Math.random()*360} ${Math.random()*360} ${Math.random()*360}`);
+            cube.setAttribute('scale', `${size} ${size} ${size}`);
             cube.setAttribute('color', color);
-            cube.setAttribute('shadow', 'cast: true; receive: true');
-            cube.setAttribute('material', 'roughness: 0.3; metalness: 0.2');
-            cube.setAttribute('class', 'clickable cube');
-            cube.setAttribute('id', `cube-${cubeCount}`);
+            cube.setAttribute('class', 'cube raycastable');
+            cube.setAttribute('id', `cube-${cubeCounter}`);
             
-            // Animación de aparición
+            // Animaciones
             cube.setAttribute('animation__spawn', {
                 property: 'scale',
                 from: '0 0 0',
-                to: `${scale} ${scale} ${scale}`,
-                dur: 500,
-                easing: 'easeOutElastic'
+                to: `${size} ${size} ${size}`,
+                dur: 600,
+                easing: 'easeOutBounce'
             });
             
-            // Animación de rotación continua
-            cube.setAttribute('animation__rotate', {
-                property: 'rotation',
-                to: '360 360 360',
-                dur: 20000,
+            cube.setAttribute('animation__float', {
+                property: 'position',
+                from: `${x} ${y} ${z}`,
+                to: `${x} ${y + 0.1} ${z}`,
+                dur: 2000,
+                direction: 'alternate',
                 loop: true,
-                easing: 'linear'
+                easing: 'easeInOutSine'
             });
             
-            // Agregar al marcador
-            marker.appendChild(cube);
+            // Añadir al contenedor
+            cubesContainer.appendChild(cube);
+            cubeCounter++;
             
-            cubeCount++;
-            updateUI();
+            updateCounter();
+            showMessage(`Cubo #${cubeCounter} agregado! 🎉`);
             
-            // Efecto visual
-            showMessage(`Cubo ${cubeCount} agregado! 🎉`);
+            console.log(`Cubo agregado en posición: ${x}, ${y}, ${z}`);
         }
         
-        // Función para limpiar cubos
-        function clearCubes() {
+        // Función para limpiar todos los cubos
+        function clearAll() {
             const cubes = document.querySelectorAll('.cube');
+            
+            if (cubes.length === 0) {
+                showMessage('No hay cubos para limpiar 🤷‍♂️');
+                return;
+            }
+            
             cubes.forEach((cube, index) => {
                 setTimeout(() => {
-                    cube.setAttribute('animation__disappear', {
+                    cube.setAttribute('animation__remove', {
                         property: 'scale',
                         to: '0 0 0',
-                        dur: 300,
-                        easing: 'easeInQuart'
+                        dur: 400,
+                        easing: 'easeInBack'
                     });
                     
                     setTimeout(() => {
                         cube.remove();
-                    }, 300);
+                    }, 400);
                 }, index * 100);
             });
             
-            cubeCount = 0;
-            setTimeout(updateUI, 1000);
-            showMessage('Todos los cubos eliminados 🧹');
+            cubeCounter = 0;
+            setTimeout(() => {
+                updateCounter();
+                showMessage('Todos los cubos eliminados! 🧹');
+            }, 500);
         }
         
-        // Actualizar interfaz
-        function updateUI() {
-            document.getElementById('cubeCount').textContent = `Cubos: ${cubeCount}`;
+        // Actualizar contador
+        function updateCounter() {
+            document.getElementById('cubeCount').textContent = `Cubos: ${cubeCounter}`;
+        }
+        
+        // Actualizar estado
+        function updateStatus(text) {
+            document.getElementById('status').textContent = text;
         }
         
         // Mostrar mensaje temporal
@@ -249,55 +294,49 @@
             const existingMsg = document.querySelector('.temp-message');
             if (existingMsg) existingMsg.remove();
             
-            const message = document.createElement('div');
-            message.className = 'temp-message';
-            message.style.cssText = `
+            const msg = document.createElement('div');
+            msg.className = 'temp-message';
+            msg.style.cssText = `
                 position: fixed;
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
-                background: rgba(0, 0, 0, 0.8);
+                background: rgba(0, 0, 0, 0.9);
                 color: white;
                 padding: 15px 25px;
-                border-radius: 25px;
-                z-index: 3000;
+                border-radius: 20px;
+                z-index: 1001;
                 font-size: 16px;
-                animation: fadeInOut 2s ease-in-out;
+                text-align: center;
+                animation: fadeInOut 3s ease-in-out forwards;
             `;
-            message.textContent = text;
-            document.body.appendChild(message);
+            msg.textContent = text;
+            document.body.appendChild(msg);
             
-            setTimeout(() => message.remove(), 2000);
+            setTimeout(() => {
+                if (msg.parentNode) msg.remove();
+            }, 3000);
         }
         
-        // Event listeners para toques en pantalla
-        let touchStartTime = 0;
+        // Event listeners para interacciones táctiles
+        let touchTimeout;
         
         document.addEventListener('touchstart', function(e) {
-            touchStartTime = Date.now();
+            if (e.target.closest('.btn')) return;
+            
+            touchTimeout = setTimeout(() => {
+                placeCube();
+            }, 100);
         });
         
         document.addEventListener('touchend', function(e) {
-            const touchDuration = Date.now() - touchStartTime;
-            if (touchDuration < 500 && isARReady) { // Toque corto
-                e.preventDefault();
-                addCube();
-            }
+            clearTimeout(touchTimeout);
         });
         
-        // Click para escritorio
+        // Click para desktop (desarrollo)
         document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('btn')) return;
-            if (isARReady) {
-                addCube();
-            }
-        });
-        
-        // Manejar errores de cámara
-        window.addEventListener('error', function(e) {
-            if (e.message.includes('camera') || e.message.includes('webcam')) {
-                showMessage('Error: No se puede acceder a la cámara 📹');
-            }
+            if (e.target.closest('.btn') || e.target.closest('.ui-overlay')) return;
+            placeCube();
         });
         
         // CSS para animaciones
@@ -305,12 +344,23 @@
         style.textContent = `
             @keyframes fadeInOut {
                 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-                20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-                80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                15% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                85% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
                 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
             }
         `;
         document.head.appendChild(style);
+        
+        // Debug info
+        console.log('AR Cube App iniciada');
+        console.log('Versión A-Frame:', AFRAME.version);
+        
+        // Error handling
+        window.addEventListener('error', function(e) {
+            console.error('Error:', e.error);
+            updateStatus('⚠️ Error detectado');
+        });
+        
     </script>
 </body>
 </html>
