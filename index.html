@@ -152,26 +152,17 @@
             },
             
             checkARCoreSupport: function() {
-                // Verificar APIs necesarias
-                return (navigator.mediaDevices && 
-                        navigator.mediaDevices.getUserMedia &&
-                        window.DeviceOrientationEvent &&
+                // Solo verificar sensores, no cámara
+                return (window.DeviceOrientationEvent &&
                         window.DeviceMotionEvent);
             },
             
             initARCore: function() {
                 const status = document.getElementById('status');
                 
-                // Solicitar permisos de cámara y sensores
-                navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: 'environment',
-                        width: { ideal: 1280 },
-                        height: { ideal: 720 }
-                    } 
-                })
-                .then(stream => {
-                    status.innerHTML = '✅ ARCore iniciado<br>Activa detección de planos';
+                // No solicitar cámara manualmente, dejar que AR.js lo maneje
+                setTimeout(() => {
+                    status.innerHTML = '✅ ARCore iniciado<br>AR.js maneja la cámara automáticamente';
                     status.style.background = 'rgba(40,167,69,0.9)';
                     
                     setTimeout(() => {
@@ -179,14 +170,7 @@
                     }, 3000);
                     
                     this.onARCoreReady();
-                    
-                    // Detener el stream ya que AR.js maneja la cámara
-                    stream.getTracks().forEach(track => track.stop());
-                })
-                .catch(error => {
-                    status.innerHTML = '❌ Error accediendo cámara<br>' + error.message;
-                    status.style.background = 'rgba(220,53,69,0.9)';
-                });
+                }, 1000);
             },
             
             onARCoreReady: function() {
