@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>AR con Cámara</title>
+    <title>AR Objetos Fijos</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
     <style>
@@ -9,66 +9,164 @@
             position: fixed;
             top: 10px;
             left: 10px;
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.8);
             color: white;
-            padding: 10px;
+            padding: 15px;
             border-radius: 5px;
             z-index: 100;
-            font-size: 14px;
+            font-size: 12px;
+            max-width: 250px;
+        }
+        .tap-info {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 15px;
+            z-index: 100;
         }
     </style>
 </head>
 <body style="margin: 0; overflow: hidden;">
     
     <div class="info">
-        Apunta la cámara a una superficie plana
+        1. Apunta a una superficie plana<br>
+        2. Toca la pantalla para colocar objetos<br>
+        3. Los objetos se quedan fijos ahí
+    </div>
+    
+    <div class="tap-info">
+        Toca para colocar objetos
     </div>
 
     <a-scene 
         embedded 
-        arjs='sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;'
-        vr-mode-ui="enabled: false">
+        arjs='sourceType: webcam; debugUIEnabled: false; trackingMethod: best; detectionMode: mono_and_matrix;'
+        vr-mode-ui="enabled: false"
+        gesture-detector>
         
-        <!-- Los objetos aparecen automáticamente en el mundo real -->
-        <a-box 
-            position="0 0.5 0" 
-            rotation="0 45 0" 
-            color="#4CC3D9"
-            animation="property: rotation; to: 0 405 0; loop: true; dur: 3000">
-        </a-box>
-        
-        <a-sphere 
-            position="1 1 -1" 
-            radius="0.3" 
-            color="#EF2D5E"
-            animation="property: position; to: 1 1.5 -1; direction: alternate; loop: true; dur: 2000">
-        </a-sphere>
-        
-        <a-text 
-            value="¡AR Funciona!" 
-            position="0 1.5 -1" 
-            color="yellow"
-            align="center">
-        </a-text>
+        <!-- Contenedor para objetos fijos -->
+        <a-entity id="objects-container">
+            <!-- Los objetos se añaden aquí dinámicamente -->
+        </a-entity>
         
         <!-- Cámara AR -->
-        <a-camera gps-camera rotation-reader></a-camera>
+        <a-camera 
+            id="camera"
+            look-controls-enabled="false"
+            wasd-controls-enabled="false">
+        </a-camera>
     </a-scene>
 
     <script>
-        // Verificar si funciona
-        window.addEventListener('load', function() {
-            console.log('AR.js cargado');
+        let objectCount = 0;
+        let isPlacing = false;
+        
+        // Registrar componente para detectar toques
+        AFRAME.registerComponent('gesture-detector', {
+            init: function() {
+                this.el.addEventListener('click', this.onClick.bind(this));
+                this.el.addEventListener('touchend', this.onTouchEnd.bind(this));
+            },
             
-            // Detectar cuando funcione la cámara
-            setTimeout(() => {
-                const video = document.querySelector('video');
-                if (video) {
-                    console.log('Cámara detectada');
-                } else {
-                    console.log('No se detectó cámara');
+            onClick: function(event) {
+                this.placeObject(event);
+            },
+            
+            onTouchEnd: function(event) {
+                if (event.changedTouches) {
+                    this.placeObject(event.changedTouches[0]);
                 }
-            }, 2000);
+            },
+            
+            placeObject: function(event) {
+                if (isPlacing) return;
+                isPlacing = true;
+                
+                const camera = document.querySelector('#camera');
+                const container = document.querySelector('#objects-container');
+                
+                // Calcular posición fija frente a la cámara
+                const cameraPosition = camera.getAttribute('position');
+                const cameraRotation = camera.getAttribute('rotation');
+                
+                // Posición fija a 2 metros de la cámara
+                const distance = 2;
+                const radY = (cameraRotation.y * Math.PI) / 180;
+                
+                const x = cameraPosition.x + Math.sin(radY) * distance + (Math.random() - 0.5);
+                const z = cameraPosition.z - Math.cos(radY) * distance;
+                const y = 0.5; // Altura fija sobre el suelo
+                
+                // Crear objeto aleatorio
+                const shapes = ['box', 'sphere', 'cylinder'];
+                const colors = ['#4CC3D9', '#EF2D5E', '#FFC65D', '#7BC8A4', '#A55EEA'];
+                
+                const randomShape = shapes[Math.floor(Math.random() * shapes.length)];
+                const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                
+                const entity = document.createElement('a-entity');
+                entity.setAttribute('id', `fixed-object-${objectCount++}`);
+                entity.setAttribute('geometry', {
+                    primitive: randomShape,
+                    radius: randomShape === 'sphere' ? 0.2 : undefined,
+                    width: randomShape === 'box' ? 0.4 : undefined,
+                    height: randomShape === 'box' ? 0.4 : undefined,
+                    depth: randomShape === 'box' ? 0.4 : undefined
+                });
+                entity.setAttribute('material', {color: randomColor});
+                entity.setAttribute('position', {x: x, y: y, z: z});
+                
+                // Animación sutil
+                entity.setAttribute('animation', {
+                    property: 'rotation',
+                    to: '0 360 0',
+                    loop: true,
+                    dur: 4000
+                });
+                
+                container.appendChild(entity);
+                
+                console.log(`Objeto colocado en posición fija: ${x.toFixed(2)}, ${y}, ${z.toFixed(2)}`);
+                
+                setTimeout(() => {
+                    isPlacing = false;
+                }, 500);
+            }
+        });
+
+        // Agregar algunos objetos iniciales fijos
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const container = document.querySelector('#objects-container');
+                
+                // Cubo fijo
+                const box = document.createElement('a-box');
+                box.setAttribute('position', '0 0.5 -2');
+                box.setAttribute('color', '#4CC3D9');
+                box.setAttribute('animation', 'property: rotation; to: 0 360 0; loop: true; dur: 4000');
+                container.appendChild(box);
+                
+                // Esfera fija
+                const sphere = document.createElement('a-sphere');
+                sphere.setAttribute('position', '1 0.3 -2');
+                sphere.setAttribute('radius', '0.3');
+                sphere.setAttribute('color', '#EF2D5E');
+                container.appendChild(sphere);
+                
+                // Texto fijo
+                const text = document.createElement('a-text');
+                text.setAttribute('position', '0 1.2 -2');
+                text.setAttribute('value', 'Objetos Fijos');
+                text.setAttribute('color', 'white');
+                text.setAttribute('align', 'center');
+                container.appendChild(text);
+                
+                console.log('Objetos iniciales colocados en posiciones fijas');
+            }, 1000);
         });
     </script>
 </body>
