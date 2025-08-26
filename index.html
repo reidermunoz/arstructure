@@ -5,19 +5,19 @@
     <script src="https://cdn.jsdelivr.net/gh/etiennepinchon/aframe-ar.js/dist/aframe-ar.js"></script>
   </head>
   <body style="margin: 0; overflow: hidden;">
-    <a-scene embedded arjs>
+    <a-scene embedded arjs="sourceType: webcam; debugUIEnabled: false; trackingMethod: best;">
+      
       <!-- Cámara AR -->
       <a-entity camera></a-entity>
 
-      <!-- Cubo interactivo que se colocará en la superficie detectada -->
-      <a-box position="0 0.5 0" color="#4CC3D9" width="1" height="1" depth="1" 
-             gps-entity-place="latitude: 0; longitude: 0;">
-      </a-box>
+      <!-- Cubo que se colocará sobre la superficie detectada -->
+      <a-box position="0 0.5 0" color="#4CC3D9" width="1" height="1" depth="1"></a-box>
 
-      <!-- Elemento que sirve para colocar el cubo en la superficie detectada -->
+      <!-- Marcador AR para la posición del cubo -->
       <a-marker preset="hiro">
         <a-box position="0 0 0" material="color: red;" scale="0.5 0.5 0.5"></a-box>
       </a-marker>
+
     </a-scene>
   </body>
 </html>
