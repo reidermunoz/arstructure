@@ -1,20 +1,75 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Test A-Frame</title>
+    <title>AR con Cámara</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <style>
+        .info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 100;
+            font-size: 14px;
+        }
+    </style>
 </head>
-<body>
-    <h1>Si ves esto, el HTML funciona</h1>
+<body style="margin: 0; overflow: hidden;">
     
-    <a-scene>
-        <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
-        <a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E"></a-sphere>
-        <a-cylinder position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder>
-        <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
-        <a-sky color="#ECECEC"></a-sky>
+    <div class="info">
+        Apunta la cámara a una superficie plana
+    </div>
+
+    <a-scene 
+        embedded 
+        arjs='sourceType: webcam; debugUIEnabled: false; detectionMode: mono_and_matrix; matrixCodeType: 3x3;'
+        vr-mode-ui="enabled: false">
+        
+        <!-- Los objetos aparecen automáticamente en el mundo real -->
+        <a-box 
+            position="0 0.5 0" 
+            rotation="0 45 0" 
+            color="#4CC3D9"
+            animation="property: rotation; to: 0 405 0; loop: true; dur: 3000">
+        </a-box>
+        
+        <a-sphere 
+            position="1 1 -1" 
+            radius="0.3" 
+            color="#EF2D5E"
+            animation="property: position; to: 1 1.5 -1; direction: alternate; loop: true; dur: 2000">
+        </a-sphere>
+        
+        <a-text 
+            value="¡AR Funciona!" 
+            position="0 1.5 -1" 
+            color="yellow"
+            align="center">
+        </a-text>
+        
+        <!-- Cámara AR -->
+        <a-camera gps-camera rotation-reader></a-camera>
     </a-scene>
-    
-    <p>Si ves objetos 3D arriba, A-Frame funciona</p>
+
+    <script>
+        // Verificar si funciona
+        window.addEventListener('load', function() {
+            console.log('AR.js cargado');
+            
+            // Detectar cuando funcione la cámara
+            setTimeout(() => {
+                const video = document.querySelector('video');
+                if (video) {
+                    console.log('Cámara detectada');
+                } else {
+                    console.log('No se detectó cámara');
+                }
+            }, 2000);
+        });
+    </script>
 </body>
 </html>
